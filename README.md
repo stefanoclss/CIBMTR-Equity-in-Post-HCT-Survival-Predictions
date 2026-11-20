@@ -115,10 +115,10 @@ Every individual model inside the unrestricted ensemble is benchmarked independe
 
 | Model Family (`key`) | Standalone Val Score | Mean Fold Fit | Mean Fold Inference | Ensemble Weight | Deployment Role |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Two-Stage Counterfactual GBDT** (`two_stage`) | `0.67498 ± 0.00521` | `53286.5 ms` | `824.77 ms` | `59.7%` | `Best Solo Accuracy` |
-| **Optuna XGBoost** (`xgb`) | `0.67205 ± 0.00346` | `11311.9 ms` | `128.75 ms` | `21.4%` | `Active Ensemble Member` |
-| **CatBoost Symmetric** (`catboost`) | `0.67183 ± 0.00365` | `17906.8 ms` | `321.98 ms` | `9.4%` | `Active Ensemble Member` |
-| **Optuna LightGBM** (`lgbm`) | `0.67070 ± 0.00332` | `7275.0 ms` | `127.47 ms` | `9.5%` | `Fastest Low-Latency` |
+| **Two-Stage Counterfactual GBDT** (`two_stage`) | `0.67498 ± 0.00521` | `53286.5 ms` | `845.84 ms` | `59.7%` | `Best Solo Accuracy` |
+| **Optuna XGBoost** (`xgb`) | `0.67205 ± 0.00346` | `11311.9 ms` | `130.42 ms` | `21.4%` | `Fastest Low-Latency` |
+| **CatBoost Symmetric** (`catboost`) | `0.67183 ± 0.00365` | `17906.8 ms` | `318.94 ms` | `9.4%` | `Active Ensemble Member` |
+| **Optuna LightGBM** (`lgbm`) | `0.67070 ± 0.00332` | `7275.0 ms` | `131.56 ms` | `9.5%` | `Active Ensemble Member` |
 
 ---
 
@@ -134,6 +134,7 @@ Every row below corresponds to a verified out-of-fold promotion recorded as an *
 | **Gen 3** | `pipeline/preprocess.py` | `median_impute`, `oof_target_encoding`, `rare_category_grouping`, `missing_indicators`, `robust_zscore` | `0.67698` | `+0.00131` | Inner-OOF Target Encoding, Frequency Pooling & Null Entropy — Detected 4.5% missing cells — inner-OOF target encoding, frequency pooling, and... |
 | **Gen 4** | `pipeline/features.py` | `plr_periodic_embeddings`, `pairwise_diff_crosses`, `cat_groupby_stats`, `log1p_skewed`, `top_pair_ratios` | `0.67783` | `+0.00085` | PLR Periodic Embeddings, Pairwise Diffs & Cohort Z-Residuals — Directly targets `donor_related` (category == 4, 1.25x residual spike) with PLR & cohort... |
 | **Gen 5** | `pipeline/objective.py` | `kaplan_meier_target` | `0.67888` | `+0.00104` | Replacing MSE with a Kaplan-Meier empirical CDF risk target will reweight survival intervals to align with observed censoring patterns, reducing OOF... |
+| **Gen 6** | `pipeline/postprocess.py` | `isotonic_pav_calibration`, `rank_calibration_blend` | `0.67888` | `+0.00000` | Injecting isotonic PAV calibration after rank blending will correct the monotonicity violations in the dri_score=6 and gvhd_proph=5 cohorts, reducing... |
 
 ---
 
@@ -146,7 +147,7 @@ flowchart LR
     PRE --> FEAT["2. Features: plr_periodic_embeddings, pairwise_diff_crosses, cat_groupby_stats, log1p_skewed, +1 more"]
     FEAT --> OBJ["3. Objective: kaplan_meier_target"]
     OBJ --> M0["4. Ensemble: Two-Stage Counterfactual GBDT (60%) + Optuna XGBoost (21%) + CatBoost Symmetric (9%) + Optuna LightGBM (10%)"]
-    M0 --> POST["5. Post-Processing: subgroup_rank_equalizer, rank_calibration_blend"]
+    M0 --> POST["5. Post-Processing: isotonic_pav_calibration, rank_calibration_blend"]
     POST --> OUT["5-Fold OOF & Holdout (C_INDEX = 0.67888)"]
 ```
 
