@@ -2,7 +2,7 @@
 
 [![Autonomous Synthesis](https://img.shields.io/badge/Synthesized%20By-sovLoop%20(Stealth)-0A66C2?style=for-the-badge)](#how-this-pipeline-was-built)
 [![Foundation LLM](https://img.shields.io/badge/Model-qwen36--architect-111827?style=for-the-badge)](#how-this-pipeline-was-built)
-[![Validation](https://img.shields.io/badge/5--Fold%20OOF-C_INDEX%200.67566-059669?style=for-the-badge)](#verified-validation-benchmark)
+[![Validation](https://img.shields.io/badge/5--Fold%20OOF-C_INDEX%200.67698-059669?style=for-the-badge)](#verified-validation-benchmark)
 [![Security](https://img.shields.io/badge/Zero--Pickle-CWE--502%20Compliant-374151?style=for-the-badge)](#governance--production-guarantees)
 [![Kaggle Public Notebook](https://img.shields.io/badge/Kaggle%20Notebook-Public%20Kernel-20BEFF?style=for-the-badge)](https://www.kaggle.com/code/stefanoclss/cibmtr-equity-in-post-hct-survival-predictions)
 [![Kaggle Challenge](https://img.shields.io/badge/Challenge-Benchmark-0284C7?style=for-the-badge)](https://www.kaggle.com/competitions/equity-post-HCT-survival-predictions)
@@ -103,8 +103,8 @@ Production data science teams need pipelines that are not only accurate, but **r
 | **Target Variable (`y`)** | `efs_time` (`regression`) |
 | **Evaluation KPI** | `C_INDEX` (Higher is better) |
 | **Baseline 5-Fold OOF Score** | `0.60863` |
-| **Champion 5-Fold OOF Score** | **`0.67566`** (`+0.06704` verified lift vs. baseline) |
-| **Cross-Fold Stability (Std. Dev.)** | `±0.00403` across `5` strict folds |
+| **Champion 5-Fold OOF Score** | **`0.67698`** (`+0.06835` verified lift vs. baseline) |
+| **Cross-Fold Stability (Std. Dev.)** | `±0.00494` across `5` strict folds |
 | **Synthesis LLM** | `qwen36-architect` (via **sovLoop**) |
 
 ---
@@ -115,10 +115,10 @@ Every individual model inside the unrestricted ensemble is benchmarked independe
 
 | Model Family (`key`) | Standalone Val Score | Mean Fold Fit | Mean Fold Inference | Ensemble Weight | Deployment Role |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Two-Stage Counterfactual GBDT** (`two_stage`) | `0.67364 ± 0.00413` | `27599.8 ms` | `538.44 ms` | `98.1%` | `Best Solo Accuracy` |
-| **CatBoost Symmetric** (`catboost`) | `0.65738 ± 0.00281` | `6066.0 ms` | `135.33 ms` | `1.9%` | `Active Ensemble Member` |
-| **Optuna LightGBM** (`lgbm`) | `0.65645 ± 0.00250` | `2661.2 ms` | `62.03 ms` | `0.0%` | `Standby Candidate` |
-| **Optuna XGBoost** (`xgb`) | `0.65484 ± 0.00399` | `3375.5 ms` | `31.29 ms` | `0.0%` | `Fastest Low-Latency` |
+| **Two-Stage Counterfactual GBDT** (`two_stage`) | `0.67485 ± 0.00494` | `37302.9 ms` | `690.11 ms` | `100.0%` | `Best Solo Accuracy` |
+| **CatBoost Symmetric** (`catboost`) | `0.65841 ± 0.00397` | `8161.0 ms` | `235.78 ms` | `0.0%` | `Standby Candidate` |
+| **Optuna XGBoost** (`xgb`) | `0.65823 ± 0.00312` | `6929.8 ms` | `115.21 ms` | `0.0%` | `Standby Candidate` |
+| **Optuna LightGBM** (`lgbm`) | `0.65822 ± 0.00304` | `4110.1 ms` | `115.05 ms` | `0.0%` | `Fastest Low-Latency` |
 
 ---
 
@@ -131,6 +131,7 @@ Every row below corresponds to a verified out-of-fold promotion recorded as an *
 | **Gen 0** | `scaffold` | Baseline initialization | `0.60863` | `baseline` | Deterministic 5-fold leak-free baseline anchor |
 | **Gen 1** | `pipeline/models.py` | `two_stage_counterfactual_gbdt`, `lgbm_optuna_tuned`, `catboost_tuned`, `xgb_optuna_tuned` | `0.67564` | `+0.06701` | Fast Multi-Family Blend (Two-Stage + Optuna-LightGBM + CatBoost + XGBoost) — Combines diverse `<60s/fold` GBDT & counterfactual families during core... |
 | **Gen 2** | `pipeline/postprocess.py` | `subgroup_rank_equalizer`, `rank_calibration_blend` | `0.67566` | `+0.00003` | Subgroup Rank-Variance Equalization + Rank-Gauss Calibration — Stabilizes inter-cohort score spread to reduce subgroup metric dispersion without... |
+| **Gen 3** | `pipeline/preprocess.py` | `median_impute`, `oof_target_encoding`, `rare_category_grouping`, `missing_indicators`, `robust_zscore` | `0.67698` | `+0.00131` | Inner-OOF Target Encoding, Frequency Pooling & Null Entropy — Detected 4.5% missing cells — inner-OOF target encoding, frequency pooling, and... |
 
 ---
 
@@ -139,12 +140,12 @@ Every row below corresponds to a verified out-of-fold promotion recorded as an *
 ```mermaid
 flowchart LR
     DATA["Raw Data (57 predictors)"] --> SPLIT["5-Fold CV Split"]
-    SPLIT --> PRE["1. Preprocessing: mean_impute"]
+    SPLIT --> PRE["1. Preprocessing: median_impute, oof_target_encoding, rare_category_grouping, missing_indicators, +1 more"]
     PRE --> FEAT["2. Features: raw_passthrough"]
     FEAT --> OBJ["3. Objective: standard_task_loss"]
-    OBJ --> M0["4. Ensemble: Two-Stage Counterfactual GBDT (98%) + CatBoost Symmetric (2%)"]
+    OBJ --> M0["4. Ensemble: Two-Stage Counterfactual GBDT (100%)"]
     M0 --> POST["5. Post-Processing: subgroup_rank_equalizer, rank_calibration_blend"]
-    POST --> OUT["5-Fold OOF & Holdout (C_INDEX = 0.67566)"]
+    POST --> OUT["5-Fold OOF & Holdout (C_INDEX = 0.67698)"]
 ```
 
 | Deliverable | Role in Production Workflow |
