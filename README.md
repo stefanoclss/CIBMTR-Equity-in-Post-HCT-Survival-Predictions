@@ -1,20 +1,20 @@
 # CIBMTR - Equity in Post-HCT Survival Predictions
 
 [![Autonomous Synthesis](https://img.shields.io/badge/Synthesized%20By-sovLoop%20(Stealth)-0A66C2?style=for-the-badge)](#how-this-pipeline-was-built)
-[![Foundation LLM](https://img.shields.io/badge/Model-qwen3.5%3A9b-111827?style=for-the-badge)](#how-this-pipeline-was-built)
-[![Validation](https://img.shields.io/badge/5--Fold%20OOF-RMSE%201.71962-059669?style=for-the-badge)](#verified-validation-benchmark)
+[![Foundation LLM](https://img.shields.io/badge/Model-qwen36--architect-111827?style=for-the-badge)](#how-this-pipeline-was-built)
+[![Validation](https://img.shields.io/badge/5--Fold%20OOF-C_INDEX%200.67564-059669?style=for-the-badge)](#verified-validation-benchmark)
 [![Security](https://img.shields.io/badge/Zero--Pickle-CWE--502%20Compliant-374151?style=for-the-badge)](#governance--production-guarantees)
 [![Kaggle Public Notebook](https://img.shields.io/badge/Kaggle%20Notebook-Public%20Kernel-20BEFF?style=for-the-badge)](https://www.kaggle.com/code/stefanoclss/cibmtr-equity-in-post-hct-survival-predictions)
 [![Kaggle Challenge](https://img.shields.io/badge/Challenge-Benchmark-0284C7?style=for-the-badge)](https://www.kaggle.com/competitions/equity-post-HCT-survival-predictions)
 
 > **Autonomous End-to-End Machine Learning Engineering by sovLoop**
-> From raw tabular schema forensics to interpretable `preprocessing(df)` & `feature_engineering(df)` pipelines, Optuna-tuned multi-family GBDT ensembles, and zero-pickle production packaging—evolved step-by-step using **`qwen3.5:9b`**.
+> From raw tabular schema forensics to interpretable `preprocessing(df)` & `feature_engineering(df)` pipelines, Optuna-tuned multi-family GBDT ensembles, and zero-pickle production packaging—evolved step-by-step using **`qwen36-architect`**.
 
 ---
 
 ## Executive Overview
 
-Predict `tbi_status` (regression) across `58` structured predictors on `train.csv` under strict leak-free 5-fold out-of-fold validation to minimize `RMSE`.
+Predict `efs_time` (regression) across `57` structured predictors on `train.csv` accounting for right-censored event indicator `efs` under strict leak-free 5-fold out-of-fold validation to maximize `C_INDEX`.
 
 <details>
 <summary><strong>Dataset Schema & Variable Dictionary</strong></summary>
@@ -88,7 +88,7 @@ Production data science teams need pipelines that are not only accurate, but **r
 
 ## How This Pipeline Was Built
 
-1. **Simple Baseline -> Gradual Verified Evolution**: Starting from a clean baseline, **sovLoop** (guided by `qwen3.5:9b`) evolved one stage at a time—adding explicit column hygiene, domain features, leak-free target formulation, and Optuna hyperparameter optimization.
+1. **Simple Baseline -> Gradual Verified Evolution**: Starting from a clean baseline, **sovLoop** (guided by `qwen36-architect`) evolved one stage at a time—adding explicit column hygiene, domain features, leak-free target formulation, and Optuna hyperparameter optimization.
 2. **Strict Out-of-Fold Scientific Gatekeeping**: Candidate modifications to preprocessing, feature engineering, estimator hyperparameters, and post-processing were evaluated across **100% of 5-fold out-of-fold validation rows**. Any change that failed to improve CV was rejected.
 3. **Atomic Single-Module Git Lineage**: After initial scaffolding, **each commit in this repository modifies strictly one atomic stage file** (`pipeline/models.py`, `pipeline/features.py`, `pipeline/preprocess.py`, `pipeline/objective.py`, or `pipeline/postprocess.py`). Inspect `git log -p` to audit every single lift.
 4. **Single-Notebook End-to-End Reproducibility (Zero-Pickle / No Git LFS)**: Place raw tables in `data/` and run **`pipeline.ipynb`** top-to-bottom to reproduce visual EDA (`eda_pipeline.py`), K-Fold LightGBM/Optuna training (`training_pipeline.py` -> `artifacts/model_artifact.json`), and pure artifact holdout inferencing (`inference_pipeline.py` -> `submission.csv`).
@@ -100,12 +100,12 @@ Production data science teams need pipelines that are not only accurate, but **r
 | Benchmark Dimension | Verified Result |
 | :--- | :--- |
 | **Challenge / Dataset** | **CIBMTR - Equity in Post-HCT Survival Predictions** (`train.csv`) |
-| **Target Variable (`y`)** | `tbi_status` (`regression`) |
-| **Evaluation KPI** | `RMSE` (Lower is better) |
-| **Baseline 5-Fold OOF Score** | `1.71962` |
-| **Champion 5-Fold OOF Score** | **`1.71962`** (`+0.00000` verified lift vs. baseline) |
-| **Cross-Fold Stability (Std. Dev.)** | `±0.00883` across `5` strict folds |
-| **Synthesis LLM** | `qwen3.5:9b` (via **sovLoop**) |
+| **Target Variable (`y`)** | `efs_time` (`regression`) |
+| **Evaluation KPI** | `C_INDEX` (Higher is better) |
+| **Baseline 5-Fold OOF Score** | `0.60863` |
+| **Champion 5-Fold OOF Score** | **`0.67564`** (`+0.06701` verified lift vs. baseline) |
+| **Cross-Fold Stability (Std. Dev.)** | `±0.00403` across `5` strict folds |
+| **Synthesis LLM** | `qwen36-architect` (via **sovLoop**) |
 
 ---
 
@@ -115,7 +115,10 @@ Every individual model inside the unrestricted ensemble is benchmarked independe
 
 | Model Family (`key`) | Standalone Val Score | Mean Fold Fit | Mean Fold Inference | Ensemble Weight | Deployment Role |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **L2 Ridge Linear** (`ridge`) | `1.71960 ± 0.00883` | `0.2 ms` | `4.42 ms` | `100.0%` | `Best Solo + Fastest SLA` |
+| **Two-Stage Counterfactual GBDT** (`two_stage`) | `0.67364 ± 0.00413` | `27599.8 ms` | `533.99 ms` | `98.1%` | `Best Solo Accuracy` |
+| **CatBoost Symmetric** (`catboost`) | `0.65738 ± 0.00281` | `6066.0 ms` | `130.29 ms` | `1.9%` | `Active Ensemble Member` |
+| **Optuna LightGBM** (`lgbm`) | `0.65645 ± 0.00250` | `2661.2 ms` | `59.95 ms` | `0.0%` | `Standby Candidate` |
+| **Optuna XGBoost** (`xgb`) | `0.65484 ± 0.00399` | `3375.5 ms` | `27.86 ms` | `0.0%` | `Fastest Low-Latency` |
 
 ---
 
@@ -123,9 +126,10 @@ Every individual model inside the unrestricted ensemble is benchmarked independe
 
 Every row below corresponds to a verified out-of-fold promotion recorded as an **isolated single-module commit** in `git log`:
 
-| Iteration | Module Evolved | Active Synthesis Operations | 5-Fold OOF `RMSE` | Lift | Engineering Rationale |
+| Iteration | Module Evolved | Active Synthesis Operations | 5-Fold OOF `C_INDEX` | Lift | Engineering Rationale |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Gen 0** | `scaffold` | Baseline initialization | `1.71962` | `baseline` | Deterministic 5-fold leak-free baseline anchor |
+| **Gen 0** | `scaffold` | Baseline initialization | `0.60863` | `baseline` | Deterministic 5-fold leak-free baseline anchor |
+| **Gen 1** | `pipeline/models.py` | `two_stage_counterfactual_gbdt`, `lgbm_optuna_tuned`, `catboost_tuned`, `xgb_optuna_tuned` | `0.67564` | `+0.06701` | Fast Multi-Family Blend (Two-Stage + Optuna-LightGBM + CatBoost + XGBoost) — Combines diverse `<60s/fold` GBDT & counterfactual families during core... |
 
 ---
 
@@ -133,13 +137,13 @@ Every row below corresponds to a verified out-of-fold promotion recorded as an *
 
 ```mermaid
 flowchart LR
-    DATA["Raw Data (58 predictors)"] --> SPLIT["5-Fold CV Split"]
+    DATA["Raw Data (57 predictors)"] --> SPLIT["5-Fold CV Split"]
     SPLIT --> PRE["1. Preprocessing: mean_impute"]
     PRE --> FEAT["2. Features: raw_passthrough"]
     FEAT --> OBJ["3. Objective: standard_task_loss"]
-    OBJ --> M0["4. Ensemble: L2 Ridge Linear (100%)"]
+    OBJ --> M0["4. Ensemble: Two-Stage Counterfactual GBDT (98%) + CatBoost Symmetric (2%)"]
     M0 --> POST["5. Post-Processing: identity_passthrough"]
-    POST --> OUT["5-Fold OOF & Holdout (RMSE = 1.71962)"]
+    POST --> OUT["5-Fold OOF & Holdout (C_INDEX = 0.67564)"]
 ```
 
 | Deliverable | Role in Production Workflow |
