@@ -2,7 +2,7 @@
 
 [![Autonomous Synthesis](https://img.shields.io/badge/Synthesized%20By-sovLoop%20(Stealth)-0A66C2?style=for-the-badge)](#how-this-pipeline-was-built)
 [![Foundation LLM](https://img.shields.io/badge/Model-qwen36--architect-111827?style=for-the-badge)](#how-this-pipeline-was-built)
-[![Validation](https://img.shields.io/badge/5--Fold%20OOF-C_INDEX%200.67783-059669?style=for-the-badge)](#verified-validation-benchmark)
+[![Validation](https://img.shields.io/badge/5--Fold%20OOF-C_INDEX%200.67888-059669?style=for-the-badge)](#verified-validation-benchmark)
 [![Security](https://img.shields.io/badge/Zero--Pickle-CWE--502%20Compliant-374151?style=for-the-badge)](#governance--production-guarantees)
 [![Kaggle Public Notebook](https://img.shields.io/badge/Kaggle%20Notebook-Public%20Kernel-20BEFF?style=for-the-badge)](https://www.kaggle.com/code/stefanoclss/cibmtr-equity-in-post-hct-survival-predictions)
 [![Kaggle Challenge](https://img.shields.io/badge/Challenge-Benchmark-0284C7?style=for-the-badge)](https://www.kaggle.com/competitions/equity-post-HCT-survival-predictions)
@@ -103,8 +103,8 @@ Production data science teams need pipelines that are not only accurate, but **r
 | **Target Variable (`y`)** | `efs_time` (`regression`) |
 | **Evaluation KPI** | `C_INDEX` (Higher is better) |
 | **Baseline 5-Fold OOF Score** | `0.60863` |
-| **Champion 5-Fold OOF Score** | **`0.67783`** (`+0.06920` verified lift vs. baseline) |
-| **Cross-Fold Stability (Std. Dev.)** | `±0.00523` across `5` strict folds |
+| **Champion 5-Fold OOF Score** | **`0.67888`** (`+0.07025` verified lift vs. baseline) |
+| **Cross-Fold Stability (Std. Dev.)** | `±0.00439` across `5` strict folds |
 | **Synthesis LLM** | `qwen36-architect` (via **sovLoop**) |
 
 ---
@@ -115,10 +115,10 @@ Every individual model inside the unrestricted ensemble is benchmarked independe
 
 | Model Family (`key`) | Standalone Val Score | Mean Fold Fit | Mean Fold Inference | Ensemble Weight | Deployment Role |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Two-Stage Counterfactual GBDT** (`two_stage`) | `0.67535 ± 0.00524` | `49737.9 ms` | `811.19 ms` | `99.5%` | `Best Solo Accuracy` |
-| **Optuna LightGBM** (`lgbm`) | `0.65636 ± 0.00511` | `4284.9 ms` | `97.47 ms` | `0.0%` | `Fastest Low-Latency` |
-| **CatBoost Symmetric** (`catboost`) | `0.65609 ± 0.00391` | `12315.1 ms` | `315.03 ms` | `0.0%` | `Standby Candidate` |
-| **Optuna XGBoost** (`xgb`) | `0.65562 ± 0.00509` | `8234.1 ms` | `123.79 ms` | `0.5%` | `Standby Candidate` |
+| **Two-Stage Counterfactual GBDT** (`two_stage`) | `0.67498 ± 0.00521` | `53286.5 ms` | `824.77 ms` | `59.7%` | `Best Solo Accuracy` |
+| **Optuna XGBoost** (`xgb`) | `0.67205 ± 0.00346` | `11311.9 ms` | `128.75 ms` | `21.4%` | `Active Ensemble Member` |
+| **CatBoost Symmetric** (`catboost`) | `0.67183 ± 0.00365` | `17906.8 ms` | `321.98 ms` | `9.4%` | `Active Ensemble Member` |
+| **Optuna LightGBM** (`lgbm`) | `0.67070 ± 0.00332` | `7275.0 ms` | `127.47 ms` | `9.5%` | `Fastest Low-Latency` |
 
 ---
 
@@ -133,6 +133,7 @@ Every row below corresponds to a verified out-of-fold promotion recorded as an *
 | **Gen 2** | `pipeline/postprocess.py` | `subgroup_rank_equalizer`, `rank_calibration_blend` | `0.67566` | `+0.00003` | Subgroup Rank-Variance Equalization + Rank-Gauss Calibration — Stabilizes inter-cohort score spread to reduce subgroup metric dispersion without... |
 | **Gen 3** | `pipeline/preprocess.py` | `median_impute`, `oof_target_encoding`, `rare_category_grouping`, `missing_indicators`, `robust_zscore` | `0.67698` | `+0.00131` | Inner-OOF Target Encoding, Frequency Pooling & Null Entropy — Detected 4.5% missing cells — inner-OOF target encoding, frequency pooling, and... |
 | **Gen 4** | `pipeline/features.py` | `plr_periodic_embeddings`, `pairwise_diff_crosses`, `cat_groupby_stats`, `log1p_skewed`, `top_pair_ratios` | `0.67783` | `+0.00085` | PLR Periodic Embeddings, Pairwise Diffs & Cohort Z-Residuals — Directly targets `donor_related` (category == 4, 1.25x residual spike) with PLR & cohort... |
+| **Gen 5** | `pipeline/objective.py` | `kaplan_meier_target` | `0.67888` | `+0.00104` | Replacing MSE with a Kaplan-Meier empirical CDF risk target will reweight survival intervals to align with observed censoring patterns, reducing OOF... |
 
 ---
 
@@ -143,10 +144,10 @@ flowchart LR
     DATA["Raw Data (57 predictors)"] --> SPLIT["5-Fold CV Split"]
     SPLIT --> PRE["1. Preprocessing: median_impute, oof_target_encoding, rare_category_grouping, missing_indicators, +1 more"]
     PRE --> FEAT["2. Features: plr_periodic_embeddings, pairwise_diff_crosses, cat_groupby_stats, log1p_skewed, +1 more"]
-    FEAT --> OBJ["3. Objective: standard_task_loss"]
-    OBJ --> M0["4. Ensemble: Two-Stage Counterfactual GBDT (99%) + Optuna XGBoost (1%)"]
+    FEAT --> OBJ["3. Objective: kaplan_meier_target"]
+    OBJ --> M0["4. Ensemble: Two-Stage Counterfactual GBDT (60%) + Optuna XGBoost (21%) + CatBoost Symmetric (9%) + Optuna LightGBM (10%)"]
     M0 --> POST["5. Post-Processing: subgroup_rank_equalizer, rank_calibration_blend"]
-    POST --> OUT["5-Fold OOF & Holdout (C_INDEX = 0.67783)"]
+    POST --> OUT["5-Fold OOF & Holdout (C_INDEX = 0.67888)"]
 ```
 
 | Deliverable | Role in Production Workflow |
