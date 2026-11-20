@@ -1,7 +1,7 @@
 """Exploratory Data Analysis & Visual Diagnostics (`pipeline/eda.py`).
 
-Synthesized by sovLoop (Model: qwen3.5:9b)
-Target Variable: `tbi_status` (regression | RMSE)
+Synthesized by sovLoop (Model: qwen36-architect)
+Target Variable: `efs_time` (regression | C_INDEX)
 """
 
 from __future__ import annotations
@@ -27,7 +27,7 @@ def _to_pandas(df: pd.DataFrame | pl.DataFrame) -> pd.DataFrame:
 
 def profile_dataset(
     df: pd.DataFrame | pl.DataFrame,
-    target_col: str = "tbi_status",
+    target_col: str = "efs_time",
 ) -> dict[str, Any]:
     """Compute row/column cardinality, missingness rates, and target distribution moments."""
     pdf = _to_pandas(df)
@@ -61,7 +61,7 @@ def profile_dataset(
 
 def plot_eda_overview(
     df: pd.DataFrame | pl.DataFrame,
-    target_col: str = 'tbi_status',
+    target_col: str = 'efs_time',
     output_path: str | Path = "artifacts/eda_overview.png",
 ) -> Path:
     """Render a 4-panel Executive Data Hygiene & Feature Correlation Dashboard."""
