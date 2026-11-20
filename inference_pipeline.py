@@ -1,6 +1,6 @@
 """Top-Level Batch Inference Orchestrator (`inference_pipeline.py`).
 
-Synthesized by sovLoop (Model: qwen3.5:9b)
+Synthesized by sovLoop (Model: qwen36-architect)
 Loads zero-pickle `artifacts/model_artifact.json` (and `fold_*.lgb` boosters)
 and executes `preprocessing(df)` -> `feature_engineering(df)` -> fold ensemble scoring.
 """
@@ -82,7 +82,7 @@ def format_submission_frame(
     test_df: pl.DataFrame,
     preds: np.ndarray,
     sample_sub_df: pl.DataFrame | None = None,
-    target_col: str = "tbi_status",
+    target_col: str = "efs_time",
 ) -> pl.DataFrame:
     """Align predictions to `sample_submission.csv` schema or `[id_col, prediction]`."""
     if sample_sub_df is not None and sample_sub_df.width >= 2:
@@ -92,7 +92,7 @@ def format_submission_frame(
     is_ranking = (
         target_col == id_col
         or bool(CONFIGURED_EVENT_COL)
-        or "RMSE".strip().lower() == "c_index"
+        or "C_INDEX".strip().lower() == "c_index"
     )
     out_col = "prediction" if is_ranking else target_col
     return pl.DataFrame({id_col: test_df[id_col], out_col: preds})
@@ -108,7 +108,7 @@ def main() -> None:
     parser.add_argument("--train", default="", help="Optional training CSV fallback.")
     parser.add_argument("--test", required=True, help="Unseen test CSV/Parquet to score.")
     parser.add_argument("--sample-sub", default="", help="Optional sample_submission.csv path.")
-    parser.add_argument("--target", default="tbi_status", help="Target column.")
+    parser.add_argument("--target", default="efs_time", help="Target column.")
     parser.add_argument("--output", default="submission.csv", help="Output predictions CSV.")
     args = parser.parse_args()
 
