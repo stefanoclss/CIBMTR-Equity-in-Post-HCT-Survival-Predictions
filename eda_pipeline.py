@@ -1,6 +1,6 @@
 """Top-Level Exploratory Data Analysis Orchestrator (`eda_pipeline.py`).
 
-Synthesized by sovLoop (Model: qwen3.5:9b)
+Synthesized by sovLoop (Model: qwen36-architect)
 Imports `pipeline.eda` to profile dataset schema, missingness, and visual target diagnostics.
 """
 
@@ -19,7 +19,7 @@ from pipeline.eda import plot_eda_overview, profile_dataset
 
 def run_eda_pipeline(
     data_path: str | Path,
-    target_col: str = "tbi_status",
+    target_col: str = "efs_time",
     plot_path: str | Path | None = "artifacts/eda_overview.png",
 ) -> dict[str, Any]:
     """Load tabular dataset from `data_path`, save visual overview, and return EDA summary."""
@@ -35,7 +35,7 @@ def run_eda_pipeline(
 def main() -> None:
     parser = argparse.ArgumentParser(description="sovLoop Modular EDA Orchestrator")
     parser.add_argument("--input", required=True, help="Path to CSV or Parquet dataset.")
-    parser.add_argument("--target", default="tbi_status", help="Target column name.")
+    parser.add_argument("--target", default="efs_time", help="Target column name.")
     args = parser.parse_args()
     report = run_eda_pipeline(args.input, target_col=args.target)
     print(json.dumps(report, indent=2))
