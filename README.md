@@ -2,7 +2,7 @@
 
 [![Autonomous Synthesis](https://img.shields.io/badge/Synthesized%20By-sovLoop%20(Stealth)-0A66C2?style=for-the-badge)](#how-this-pipeline-was-built)
 [![Foundation LLM](https://img.shields.io/badge/Model-qwen36--architect-111827?style=for-the-badge)](#how-this-pipeline-was-built)
-[![Validation](https://img.shields.io/badge/5--Fold%20OOF-C_INDEX%200.67949-059669?style=for-the-badge)](#verified-validation-benchmark)
+[![Validation](https://img.shields.io/badge/5--Fold%20OOF-C_INDEX%200.67967-059669?style=for-the-badge)](#verified-validation-benchmark)
 [![Security](https://img.shields.io/badge/Zero--Pickle-CWE--502%20Compliant-374151?style=for-the-badge)](#governance--production-guarantees)
 [![Kaggle Public Notebook](https://img.shields.io/badge/Kaggle%20Notebook-Public%20Kernel-20BEFF?style=for-the-badge)](https://www.kaggle.com/code/stefanoclss/cibmtr-equity-in-post-hct-survival-predictions)
 [![Kaggle Challenge](https://img.shields.io/badge/Challenge-Benchmark-0284C7?style=for-the-badge)](https://www.kaggle.com/competitions/equity-post-HCT-survival-predictions)
@@ -103,8 +103,8 @@ Production data science teams need pipelines that are not only accurate, but **r
 | **Target Variable (`y`)** | `efs_time` (`regression`) |
 | **Evaluation KPI** | `C_INDEX` (Higher is better) |
 | **Baseline 5-Fold OOF Score** | `0.60863` |
-| **Champion 5-Fold OOF Score** | **`0.67949`** (`+0.07086` verified lift vs. baseline) |
-| **Cross-Fold Stability (Std. Dev.)** | `±0.00424` across `5` strict folds |
+| **Champion 5-Fold OOF Score** | **`0.67967`** (`+0.07104` verified lift vs. baseline) |
+| **Cross-Fold Stability (Std. Dev.)** | `±0.00414` across `5` strict folds |
 | **Synthesis LLM** | `qwen36-architect` (via **sovLoop**) |
 
 ---
@@ -115,10 +115,11 @@ Every individual model inside the unrestricted ensemble is benchmarked independe
 
 | Model Family (`key`) | Standalone Val Score | Mean Fold Fit | Mean Fold Inference | Ensemble Weight | Deployment Role |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Two-Stage Counterfactual GBDT** (`two_stage`) | `0.67597 ± 0.00437` | `43279.1 ms` | `710.57 ms` | `54.8%` | `Best Solo Accuracy` |
-| **Optuna LightGBM** (`lgbm`) | `0.67233 ± 0.00251` | `5324.7 ms` | `125.34 ms` | `22.2%` | `Fastest Low-Latency` |
-| **CatBoost Symmetric** (`catboost`) | `0.67205 ± 0.00338` | `14304.5 ms` | `263.14 ms` | `9.4%` | `Active Ensemble Member` |
-| **Optuna XGBoost** (`xgb`) | `0.67109 ± 0.00368` | `8508.0 ms` | `129.63 ms` | `13.6%` | `Active Ensemble Member` |
+| **Two-Stage Counterfactual GBDT** (`two_stage`) | `0.67597 ± 0.00437` | `43279.1 ms` | `683.58 ms` | `48.7%` | `Best Solo Accuracy` |
+| **Optuna LightGBM** (`lgbm`) | `0.67233 ± 0.00251` | `5324.7 ms` | `116.57 ms` | `20.9%` | `Fastest Low-Latency` |
+| **CatBoost Symmetric** (`catboost`) | `0.67205 ± 0.00338` | `14304.5 ms` | `244.34 ms` | `7.6%` | `Active Ensemble Member` |
+| **Optuna XGBoost** (`xgb`) | `0.67109 ± 0.00368` | `8508.0 ms` | `116.93 ms` | `12.5%` | `Active Ensemble Member` |
+| **Yandex TabM-Mini PLE** (`tabm_nn`) | `0.66345 ± 0.00232` | `52307.8 ms` | `278.65 ms` | `10.2%` | `Active Ensemble Member` |
 
 ---
 
@@ -143,6 +144,7 @@ Every row below corresponds to a verified out-of-fold promotion recorded as an *
 | **Gen 12** | `pipeline/features.py` | `top_pair_products`, `nonlinear_squares`, `synth:groupby_z:hla_match_dqb1_high:dri_score`, `synth:cat_cross:dri_score:gvhd_proph` | `0.67937` | `+0.00010` | Integrating bilinear HLA-age products, quadratic matching thresholds, and dri_score-stratified HLA z-scores will reduce OOF residual variance by... |
 | **Gen 13** | `pipeline/models.py` (`stream_2`) | `two_stage_counterfactual_gbdt`, `catboost_tuned`, `coupled_dual_task_gbdt` | `0.67941` | `+0.00003` | CatBoost's native ordered boosting will better isolate signal in high-impact categorical bins (e.g., dri_score=6, gvhd_proph=5) while the coupled... |
 | **Gen 14** | `pipeline/models.py` (`stream_2`) | `two_stage_counterfactual_gbdt`, `catboost_tuned`, `coupled_dual_task_gbdt`, `xgb_cox_survival`, `xgb_aft_survival`, `catboost_cox_survival` | `0.67949` | `+0.00008` | Introducing native Cox and AFT boosters alongside the counterfactual model will decouple incidence probability from conditional time-to-event... |
+| **Gen 15** | `pipeline/models.py` | `two_stage_counterfactual_gbdt`, `lgbm_optuna_tuned`, `catboost_tuned`, `xgb_optuna_tuned`, `tabm_periodic_mlp` | `0.67967` | `+0.00018` | [Phase-2 Neural/Foundation Extension 1/8] Add `tabm_periodic_mlp` onto Phase-1 champion & reweight OOF blend |
 
 ---
 
@@ -154,14 +156,14 @@ flowchart LR
     SPLIT --> PRE["1. Preprocessing: oof_target_encoding, rare_category_grouping, missing_indicators, robust_zscore, +1 more"]
     PRE --> FEAT["2. Features: top_pair_products, nonlinear_squares, synth:groupby_z:hla_match_dqb1_high:dri_score, synth:cat_cross:dri_score:gvhd_proph"]
     FEAT --> OBJ["3. Objective: kaplan_meier_target"]
-    OBJ --> M0["4a. Primary Ensemble: Two-Stage Counterfactual GBDT (55%) + Optuna LightGBM (22%) + CatBoost Symmetric (9%) + Optuna XGBoost (14%)"]
+    OBJ --> M0["4a. Primary Ensemble: Two-Stage Counterfactual GBDT (49%) + Optuna LightGBM (21%) + CatBoost Symmetric (8%) + Optuna XGBoost (13%) + Yandex TabM-Mini PLE (10%)"]
     M0 --> FUSE["Quantile-CDF Fusion"]
     OBJ --> S1["4b. stream_1: view_obj:nelson_aalen_hazard_target, view_feat:plr_periodic_embeddings, catboost_tuned, +3 more"]
     S1 --> FUSE
     OBJ --> S2["4b. stream_2: two_stage_counterfactual_gbdt, catboost_tuned, coupled_dual_task_gbdt, +3 more"]
     S2 --> FUSE
     FUSE --> POST["5. Post-Processing: rank_calibration_blend, tail_shrinkage"]
-    POST --> OUT["5-Fold OOF & Holdout (C_INDEX = 0.67949)"]
+    POST --> OUT["5-Fold OOF & Holdout (C_INDEX = 0.67967)"]
 ```
 
 | Deliverable | Role in Production Workflow |
