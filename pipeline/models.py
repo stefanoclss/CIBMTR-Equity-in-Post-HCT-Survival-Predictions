@@ -2,7 +2,7 @@
 
 Synthesized by sovLoop (Model: qwen36-architect)
 Target: `efs_time` (regression | C_INDEX)
-Active Model Operations: two_stage_counterfactual_gbdt, lgbm_optuna_tuned, catboost_tuned, xgb_optuna_tuned, coupled_dual_task_gbdt, xgb_cox_survival, xgb_aft_survival, catboost_cox_survival
+Active Model Operations: two_stage_counterfactual_gbdt, lgbm_optuna_tuned, catboost_tuned, xgb_optuna_tuned, tabm_periodic_mlp, coupled_dual_task_gbdt, xgb_cox_survival, xgb_aft_survival, catboost_cox_survival
 """
 
 from __future__ import annotations
@@ -18,7 +18,7 @@ import pandas as pd
 
 optuna.logging.set_verbosity(optuna.logging.WARNING)
 
-ACTIVE_MODEL_OPS: tuple[str, ...] = ('two_stage_counterfactual_gbdt', 'lgbm_optuna_tuned', 'catboost_tuned', 'xgb_optuna_tuned', 'coupled_dual_task_gbdt', 'xgb_cox_survival', 'xgb_aft_survival', 'catboost_cox_survival')
+ACTIVE_MODEL_OPS: tuple[str, ...] = ('two_stage_counterfactual_gbdt', 'lgbm_optuna_tuned', 'catboost_tuned', 'xgb_optuna_tuned', 'tabm_periodic_mlp', 'coupled_dual_task_gbdt', 'xgb_cox_survival', 'xgb_aft_survival', 'catboost_cox_survival')
 IS_BINARY_TASK: bool = "regression" == "binary_classification"
 
 
