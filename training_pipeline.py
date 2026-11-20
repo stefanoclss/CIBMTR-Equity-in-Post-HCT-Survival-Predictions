@@ -1,6 +1,6 @@
 """Top-Level Training & K-Fold CV Orchestrator (`training_pipeline.py`).
 
-Synthesized by sovLoop (Model: qwen3.5:9b)
+Synthesized by sovLoop (Model: qwen36-architect)
 Executes `preprocessing(df)` -> `feature_engineering(df)` -> `configure_objective_stage`
 -> LightGBM/Optuna `fit_model_stage` across strict K-Fold splits, exporting zero-pickle
 `artifacts/model_artifact.json` and `artifacts/fold_*.lgb`.
@@ -27,7 +27,7 @@ from pipeline.preprocess import fit_preprocess_stage, preprocessing
 from pipeline.split import assign_validation_folds
 
 DEFAULT_ARTIFACT_PATH = Path("artifacts/model_artifact.json")
-CONFIGURED_EVENT_COL = "None"
+CONFIGURED_EVENT_COL = "efs"
 
 
 def _jsonify(obj: Any) -> Any:
@@ -77,7 +77,7 @@ def _concordance_index(times: np.ndarray, risk_scores: np.ndarray, events: np.nd
 
 def run_training_pipeline(
     train_df: pd.DataFrame | pl.DataFrame,
-    target_col: str = "tbi_status",
+    target_col: str = "efs_time",
     n_folds: int = 5,
     exclude_cols: list[str] | None = None,
 ) -> dict[str, Any]:
@@ -183,8 +183,8 @@ def save_trained_artifact(
 
     payload = {
         "schema_version": "2.0",
-        "synthesis_model": "qwen3.5:9b",
-        "target_col": fitted_bundle.get("target_col", "tbi_status"),
+        "synthesis_model": "qwen36-architect",
+        "target_col": fitted_bundle.get("target_col", "efs_time"),
         "event_col": fitted_bundle.get("event_col"),
         "feature_cols": fitted_bundle["feature_cols"],
         "fold_states": _jsonify(fitted_bundle["fold_states"]),
@@ -198,7 +198,7 @@ def save_trained_artifact(
 def main() -> None:
     parser = argparse.ArgumentParser(description="sovLoop Modular Training Orchestrator")
     parser.add_argument("--train", required=True, help="Training CSV or Parquet path.")
-    parser.add_argument("--target", default="tbi_status", help="Target column.")
+    parser.add_argument("--target", default="efs_time", help="Target column.")
     parser.add_argument(
         "--artifact-out",
         default=str(DEFAULT_ARTIFACT_PATH),
