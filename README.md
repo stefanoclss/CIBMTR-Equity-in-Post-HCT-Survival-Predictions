@@ -2,7 +2,7 @@
 
 [![Autonomous Synthesis](https://img.shields.io/badge/Synthesized%20By-sovLoop%20(Stealth)-0A66C2?style=for-the-badge)](#how-this-pipeline-was-built)
 [![Foundation LLM](https://img.shields.io/badge/Model-qwen36--architect-111827?style=for-the-badge)](#how-this-pipeline-was-built)
-[![Validation](https://img.shields.io/badge/5--Fold%20OOF-C_INDEX%200.67698-059669?style=for-the-badge)](#verified-validation-benchmark)
+[![Validation](https://img.shields.io/badge/5--Fold%20OOF-C_INDEX%200.67784-059669?style=for-the-badge)](#verified-validation-benchmark)
 [![Security](https://img.shields.io/badge/Zero--Pickle-CWE--502%20Compliant-374151?style=for-the-badge)](#governance--production-guarantees)
 [![Kaggle Public Notebook](https://img.shields.io/badge/Kaggle%20Notebook-Public%20Kernel-20BEFF?style=for-the-badge)](https://www.kaggle.com/code/stefanoclss/cibmtr-equity-in-post-hct-survival-predictions)
 [![Kaggle Challenge](https://img.shields.io/badge/Challenge-Benchmark-0284C7?style=for-the-badge)](https://www.kaggle.com/competitions/equity-post-HCT-survival-predictions)
@@ -103,8 +103,8 @@ Production data science teams need pipelines that are not only accurate, but **r
 | **Target Variable (`y`)** | `efs_time` (`regression`) |
 | **Evaluation KPI** | `C_INDEX` (Higher is better) |
 | **Baseline 5-Fold OOF Score** | `0.60863` |
-| **Champion 5-Fold OOF Score** | **`0.67698`** (`+0.06835` verified lift vs. baseline) |
-| **Cross-Fold Stability (Std. Dev.)** | `±0.00494` across `5` strict folds |
+| **Champion 5-Fold OOF Score** | **`0.67784`** (`+0.06921` verified lift vs. baseline) |
+| **Cross-Fold Stability (Std. Dev.)** | `±0.00524` across `5` strict folds |
 | **Synthesis LLM** | `qwen36-architect` (via **sovLoop**) |
 
 ---
@@ -115,9 +115,9 @@ Every individual model inside the unrestricted ensemble is benchmarked independe
 
 | Model Family (`key`) | Standalone Val Score | Mean Fold Fit | Mean Fold Inference | Ensemble Weight | Deployment Role |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Two-Stage Counterfactual GBDT** (`two_stage`) | `0.67485 ± 0.00494` | `39490.8 ms` | `775.38 ms` | `100.0%` | `Best Solo Accuracy` |
-| **XGBoost Survival:Cox** (`xgb_cox`) | `0.66641 ± 0.00341` | `7002.7 ms` | `106.04 ms` | `0.0%` | `Fastest Low-Latency` |
-| **Optuna LightGBM** (`lgbm`) | `0.65822 ± 0.00304` | `4267.7 ms` | `138.50 ms` | `0.0%` | `Standby Candidate` |
+| **Two-Stage Counterfactual GBDT** (`two_stage`) | `0.67535 ± 0.00524` | `50143.1 ms` | `834.77 ms` | `100.0%` | `Best Solo Accuracy` |
+| **XGBoost Survival:Cox** (`xgb_cox`) | `0.66489 ± 0.00477` | `8251.1 ms` | `118.72 ms` | `0.0%` | `Standby Candidate` |
+| **Optuna LightGBM** (`lgbm`) | `0.65636 ± 0.00511` | `4406.4 ms` | `111.29 ms` | `0.0%` | `Fastest Low-Latency` |
 
 ---
 
@@ -132,6 +132,7 @@ Every row below corresponds to a verified out-of-fold promotion recorded as an *
 | **Gen 2** | `pipeline/models.py` | `two_stage_counterfactual_gbdt`, `xgb_cox_survival`, `lgbm_optuna_tuned` | `0.67576` | `+0.00000` | Two-Stage Counterfactual GBDT + Breslow Cox Partial-Likelihood — Decouples incidence classification from uncensored log-time regression alongside exact... |
 | **Gen 3** | `pipeline/postprocess.py` | `subgroup_rank_equalizer`, `rank_calibration_blend` | `0.67579` | `+0.00004` | Subgroup Rank-Variance Equalization + Rank-Gauss Calibration — Stabilizes inter-cohort score spread to reduce subgroup metric dispersion without... |
 | **Gen 4** | `pipeline/preprocess.py` | `median_impute`, `oof_target_encoding`, `rare_category_grouping`, `missing_indicators`, `robust_zscore` | `0.67698` | `+0.00118` | Inner-OOF Target Encoding, Frequency Pooling & Null Entropy — Detected 4.5% missing cells — inner-OOF target encoding, frequency pooling, and... |
+| **Gen 5** | `pipeline/features.py` | `plr_periodic_embeddings`, `pairwise_diff_crosses`, `cat_groupby_stats`, `log1p_skewed`, `top_pair_ratios` | `0.67784` | `+0.00086` | PLR Periodic Embeddings, Pairwise Diffs & Cohort Z-Residuals — Directly targets `donor_related` (category == 4, 1.25x residual spike) with PLR & cohort... |
 
 ---
 
@@ -141,11 +142,11 @@ Every row below corresponds to a verified out-of-fold promotion recorded as an *
 flowchart LR
     DATA["Raw Data (57 predictors)"] --> SPLIT["5-Fold CV Split"]
     SPLIT --> PRE["1. Preprocessing: median_impute, oof_target_encoding, rare_category_grouping, missing_indicators, +1 more"]
-    PRE --> FEAT["2. Features: raw_passthrough"]
+    PRE --> FEAT["2. Features: plr_periodic_embeddings, pairwise_diff_crosses, cat_groupby_stats, log1p_skewed, +1 more"]
     FEAT --> OBJ["3. Objective: standard_task_loss"]
     OBJ --> M0["4. Ensemble: Two-Stage Counterfactual GBDT (100%)"]
     M0 --> POST["5. Post-Processing: subgroup_rank_equalizer, rank_calibration_blend"]
-    POST --> OUT["5-Fold OOF & Holdout (C_INDEX = 0.67698)"]
+    POST --> OUT["5-Fold OOF & Holdout (C_INDEX = 0.67784)"]
 ```
 
 | Deliverable | Role in Production Workflow |
