@@ -1,14 +1,14 @@
 """Stage 5 · Prediction Calibration & Post-Processing (`pipeline/postprocess.py`).
 
 Synthesized by sovLoop (Model: qwen36-architect)
-Active Operations: subgroup_rank_equalizer, rank_calibration_blend
+Active Operations: tail_shrinkage, isotonic_pav_calibration
 """
 
 from __future__ import annotations
 
 import numpy as np
 
-ACTIVE_POSTPROCESS_OPS: tuple[str, ...] = ('subgroup_rank_equalizer', 'rank_calibration_blend')
+ACTIVE_POSTPROCESS_OPS: tuple[str, ...] = ('tail_shrinkage', 'isotonic_pav_calibration')
 
 
 def _pav_monotonic_curve(preds: np.ndarray, y_ref: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
