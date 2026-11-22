@@ -2,7 +2,7 @@
 
 [![Autonomous Synthesis](https://img.shields.io/badge/Synthesized%20By-sovLoop%20(Stealth)-0A66C2?style=for-the-badge)](#how-this-pipeline-was-built)
 [![Foundation LLM](https://img.shields.io/badge/Model-qwen36--architect-111827?style=for-the-badge)](#how-this-pipeline-was-built)
-[![Validation](https://img.shields.io/badge/5--Fold%20OOF-C_INDEX%200.67837-059669?style=for-the-badge)](#verified-validation-benchmark)
+[![Validation](https://img.shields.io/badge/5--Fold%20OOF-C_INDEX%200.67839-059669?style=for-the-badge)](#verified-validation-benchmark)
 [![Security](https://img.shields.io/badge/Zero--Pickle-CWE--502%20Compliant-374151?style=for-the-badge)](#governance--production-guarantees)
 [![Kaggle Public Notebook](https://img.shields.io/badge/Kaggle%20Notebook-Public%20Kernel-20BEFF?style=for-the-badge)](https://www.kaggle.com/code/stefanoclss/cibmtr-equity-in-post-hct-survival-predictions)
 [![Kaggle Challenge](https://img.shields.io/badge/Challenge-Benchmark-0284C7?style=for-the-badge)](https://www.kaggle.com/competitions/equity-post-HCT-survival-predictions)
@@ -103,7 +103,7 @@ Production data science teams need pipelines that are not only accurate, but **r
 | **Target Variable (`y`)** | `efs_time` (`regression`) |
 | **Evaluation KPI** | `C_INDEX` (Higher is better) |
 | **Baseline 5-Fold OOF Score** | `0.60863` |
-| **Champion 5-Fold OOF Score** | **`0.67837`** (`+0.06975` verified lift vs. baseline) |
+| **Champion 5-Fold OOF Score** | **`0.67839`** (`+0.06976` verified lift vs. baseline) |
 | **Cross-Fold Stability (Std. Dev.)** | `±0.00480` across `5` strict folds |
 | **Synthesis LLM** | `qwen36-architect` (via **sovLoop**) |
 
@@ -115,9 +115,9 @@ Every individual model inside the unrestricted ensemble is benchmarked independe
 
 | Model Family (`key`) | Standalone Val Score | Mean Fold Fit | Mean Fold Inference | Ensemble Weight | Deployment Role |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Two-Stage Counterfactual GBDT** (`two_stage`) | `0.67498 ± 0.00521` | `52873.5 ms` | `783.48 ms` | `70.8%` | `Best Solo Accuracy` |
-| **Optuna LightGBM** (`lgbm`) | `0.67070 ± 0.00332` | `7146.2 ms` | `149.84 ms` | `29.2%` | `Active Ensemble Member` |
-| **XGBoost Survival:Cox** (`xgb_cox`) | `0.66564 ± 0.00483` | `8541.3 ms` | `112.28 ms` | `0.0%` | `Fastest Low-Latency` |
+| **Two-Stage Counterfactual GBDT** (`two_stage`) | `0.67498 ± 0.00521` | `52873.5 ms` | `803.11 ms` | `70.8%` | `Best Solo Accuracy` |
+| **Optuna LightGBM** (`lgbm`) | `0.67070 ± 0.00332` | `7146.2 ms` | `150.69 ms` | `29.2%` | `Active Ensemble Member` |
+| **XGBoost Survival:Cox** (`xgb_cox`) | `0.66564 ± 0.00483` | `8541.3 ms` | `124.37 ms` | `0.0%` | `Fastest Low-Latency` |
 
 ---
 
@@ -135,6 +135,7 @@ Every row below corresponds to a verified out-of-fold promotion recorded as an *
 | **Gen 5** | `pipeline/features.py` | `plr_periodic_embeddings`, `pairwise_diff_crosses`, `cat_groupby_stats`, `log1p_skewed`, `top_pair_ratios` | `0.67784` | `+0.00086` | PLR Periodic Embeddings, Pairwise Diffs & Cohort Z-Residuals — Directly targets `donor_related` (category == 4, 1.25x residual spike) with PLR & cohort... |
 | **Gen 6** | `pipeline/objective.py` | `kaplan_meier_target` | `0.67837` | `+0.00053` | Switching to a Kaplan-Meier empirical risk target will better align the optimization landscape with censored survival ranks, reducing persistent... |
 | **Gen 7** | `pipeline/postprocess.py` | `tail_shrinkage`, `isotonic_pav_calibration` | `0.67837` | `+0.00000` | Applying James-Stein shrinkage to the extreme tails of the dri_score distribution will reduce variance-driven overfitting in category 6, stabilizing the... |
+| **Gen 8** | `pipeline/postprocess.py` | `optimal_threshold_tune`, `rank_calibration_blend` | `0.67839` | `+0.00001` | Applying OOF Platt scaling to correct mean bias and rank-gauss blending to normalize the heavy-tailed distribution of efs_time residuals will improve... |
 
 ---
 
@@ -147,8 +148,8 @@ flowchart LR
     PRE --> FEAT["2. Features: plr_periodic_embeddings, pairwise_diff_crosses, cat_groupby_stats, log1p_skewed, +1 more"]
     FEAT --> OBJ["3. Objective: kaplan_meier_target"]
     OBJ --> M0["4. Ensemble: Two-Stage Counterfactual GBDT (71%) + Optuna LightGBM (29%)"]
-    M0 --> POST["5. Post-Processing: tail_shrinkage, isotonic_pav_calibration"]
-    POST --> OUT["5-Fold OOF & Holdout (C_INDEX = 0.67837)"]
+    M0 --> POST["5. Post-Processing: optimal_threshold_tune, rank_calibration_blend"]
+    POST --> OUT["5-Fold OOF & Holdout (C_INDEX = 0.67839)"]
 ```
 
 | Deliverable | Role in Production Workflow |
