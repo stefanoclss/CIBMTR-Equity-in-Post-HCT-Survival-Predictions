@@ -115,10 +115,9 @@ Every individual model inside the unrestricted ensemble is benchmarked independe
 
 | Model Family (`key`) | Standalone Val Score | Mean Fold Fit | Mean Fold Inference | Ensemble Weight | Deployment Role |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Two-Stage Counterfactual GBDT** (`two_stage`) | `0.67364 ± 0.00413` | `29207.2 ms` | `573.15 ms` | `100.0%` | `Best Solo Accuracy` |
-| **CatBoost Symmetric** (`catboost`) | `0.65738 ± 0.00281` | `6423.2 ms` | `147.28 ms` | `0.0%` | `Standby Candidate` |
-| **Optuna LightGBM** (`lgbm`) | `0.65645 ± 0.00250` | `2920.6 ms` | `60.02 ms` | `0.0%` | `Standby Candidate` |
-| **Optuna XGBoost** (`xgb`) | `0.65484 ± 0.00399` | `3442.0 ms` | `30.50 ms` | `0.0%` | `Fastest Low-Latency` |
+| **Two-Stage Counterfactual GBDT** (`two_stage`) | `0.67364 ± 0.00413` | `29207.2 ms` | `591.62 ms` | `100.0%` | `Best Solo Accuracy` |
+| **XGBoost Survival:Cox** (`xgb_cox`) | `0.66592 ± 0.00337` | `4225.8 ms` | `38.50 ms` | `0.0%` | `Fastest Low-Latency` |
+| **Optuna LightGBM** (`lgbm`) | `0.65645 ± 0.00250` | `2920.6 ms` | `62.37 ms` | `0.0%` | `Standby Candidate` |
 
 ---
 
@@ -130,6 +129,7 @@ Every row below corresponds to a verified out-of-fold promotion recorded as an *
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Gen 0** | `scaffold` | Baseline initialization | `0.60863` | `baseline` | Deterministic 5-fold leak-free baseline anchor |
 | **Gen 1** | `pipeline/models.py` | `two_stage_counterfactual_gbdt`, `lgbm_optuna_tuned`, `catboost_tuned`, `xgb_optuna_tuned` | `0.67576` | `+0.06713` | Fast Multi-Family Blend (Two-Stage + Optuna-LightGBM + CatBoost + XGBoost) — Combines diverse `<60s/fold` GBDT & counterfactual families during core... |
+| **Gen 2** | `pipeline/models.py` | `two_stage_counterfactual_gbdt`, `xgb_cox_survival`, `lgbm_optuna_tuned` | `0.67576` | `+0.00000` | Two-Stage Counterfactual GBDT + Breslow Cox Partial-Likelihood — Decouples incidence classification from uncensored log-time regression alongside exact... |
 
 ---
 
