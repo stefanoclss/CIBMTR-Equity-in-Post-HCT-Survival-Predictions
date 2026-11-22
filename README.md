@@ -115,10 +115,10 @@ Every individual model inside the unrestricted ensemble is benchmarked independe
 
 | Model Family (`key`) | Standalone Val Score | Mean Fold Fit | Mean Fold Inference | Ensemble Weight | Deployment Role |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Two-Stage Counterfactual GBDT** (`two_stage`) | `0.67622 ± 0.00489` | `51262.2 ms` | `923.03 ms` | `70.5%` | `Best Solo Accuracy` |
-| **Optuna LightGBM** (`lgbm`) | `0.67122 ± 0.00363` | `4524.0 ms` | `162.22 ms` | `15.6%` | `Active Ensemble Member` |
-| **Optuna XGBoost** (`xgb`) | `0.67071 ± 0.00436` | `10018.9 ms` | `147.56 ms` | `13.9%` | `Active Ensemble Member` |
-| **XGBoost Survival:Cox** (`xgb_cox`) | `0.66551 ± 0.00446` | `8193.5 ms` | `133.64 ms` | `0.0%` | `Fastest Low-Latency` |
+| **Two-Stage Counterfactual GBDT** (`two_stage`) | `0.67622 ± 0.00489` | `51262.2 ms` | `848.39 ms` | `70.5%` | `Best Solo Accuracy` |
+| **Optuna LightGBM** (`lgbm`) | `0.67122 ± 0.00363` | `4524.0 ms` | `154.62 ms` | `15.6%` | `Active Ensemble Member` |
+| **Optuna XGBoost** (`xgb`) | `0.67071 ± 0.00436` | `10018.9 ms` | `133.59 ms` | `13.9%` | `Active Ensemble Member` |
+| **XGBoost Survival:Cox** (`xgb_cox`) | `0.66551 ± 0.00446` | `8193.5 ms` | `119.69 ms` | `0.0%` | `Fastest Low-Latency` |
 
 ---
 
@@ -139,6 +139,7 @@ Every row below corresponds to a verified out-of-fold promotion recorded as an *
 | **Gen 8** | `pipeline/postprocess.py` | `optimal_threshold_tune`, `rank_calibration_blend` | `0.67839` | `+0.00001` | Applying OOF Platt scaling to correct mean bias and rank-gauss blending to normalize the heavy-tailed distribution of efs_time residuals will improve... |
 | **Gen 9** | `pipeline/preprocess.py` | `mean_impute`, `oof_target_encoding`, `rare_category_grouping`, `missing_indicators`, `robust_zscore` | `0.67936` | `+0.00097` | Substituting median with mean imputation for numeric features captures broader distributional signal to reduce residual bias in high-signal categorical... |
 | **Gen 10** | `pipeline/models.py` | `two_stage_counterfactual_gbdt`, `xgb_cox_survival`, `lgbm_optuna_tuned`, `xgb_optuna_tuned` | `0.67940` | `+0.00004` | [Phase-2 Neural/Foundation Extension 10/10] Add `xgb_optuna_tuned` onto Phase-1 champion & reweight OOF blend |
+| **Gen 11** | `pipeline/postprocess.py` | `rank_calibration_blend` | `0.67940` | `+0.00000` | [Phase-2 Zero-Refit Postprocess] Calibrate extended ensemble via ['rank_calibration_blend'] |
 
 ---
 
@@ -151,7 +152,7 @@ flowchart LR
     PRE --> FEAT["2. Features: plr_periodic_embeddings, pairwise_diff_crosses, cat_groupby_stats, log1p_skewed, +1 more"]
     FEAT --> OBJ["3. Objective: kaplan_meier_target"]
     OBJ --> M0["4. Ensemble: Two-Stage Counterfactual GBDT (71%) + Optuna LightGBM (16%) + Optuna XGBoost (14%)"]
-    M0 --> POST["5. Post-Processing: optimal_threshold_tune, rank_calibration_blend"]
+    M0 --> POST["5. Post-Processing: rank_calibration_blend"]
     POST --> OUT["5-Fold OOF & Holdout (C_INDEX = 0.67940)"]
 ```
 
