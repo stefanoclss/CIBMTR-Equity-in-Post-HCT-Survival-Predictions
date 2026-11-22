@@ -2,7 +2,7 @@
 
 [![Autonomous Synthesis](https://img.shields.io/badge/Synthesized%20By-sovLoop%20(Stealth)-0A66C2?style=for-the-badge)](#how-this-pipeline-was-built)
 [![Foundation LLM](https://img.shields.io/badge/Model-qwen36--architect-111827?style=for-the-badge)](#how-this-pipeline-was-built)
-[![Validation](https://img.shields.io/badge/5--Fold%20OOF-C_INDEX%200.67576-059669?style=for-the-badge)](#verified-validation-benchmark)
+[![Validation](https://img.shields.io/badge/5--Fold%20OOF-C_INDEX%200.67579-059669?style=for-the-badge)](#verified-validation-benchmark)
 [![Security](https://img.shields.io/badge/Zero--Pickle-CWE--502%20Compliant-374151?style=for-the-badge)](#governance--production-guarantees)
 [![Kaggle Public Notebook](https://img.shields.io/badge/Kaggle%20Notebook-Public%20Kernel-20BEFF?style=for-the-badge)](https://www.kaggle.com/code/stefanoclss/cibmtr-equity-in-post-hct-survival-predictions)
 [![Kaggle Challenge](https://img.shields.io/badge/Challenge-Benchmark-0284C7?style=for-the-badge)](https://www.kaggle.com/competitions/equity-post-HCT-survival-predictions)
@@ -103,7 +103,7 @@ Production data science teams need pipelines that are not only accurate, but **r
 | **Target Variable (`y`)** | `efs_time` (`regression`) |
 | **Evaluation KPI** | `C_INDEX` (Higher is better) |
 | **Baseline 5-Fold OOF Score** | `0.60863` |
-| **Champion 5-Fold OOF Score** | **`0.67576`** (`+0.06713` verified lift vs. baseline) |
+| **Champion 5-Fold OOF Score** | **`0.67579`** (`+0.06717` verified lift vs. baseline) |
 | **Cross-Fold Stability (Std. Dev.)** | `±0.00413` across `5` strict folds |
 | **Synthesis LLM** | `qwen36-architect` (via **sovLoop**) |
 
@@ -115,9 +115,9 @@ Every individual model inside the unrestricted ensemble is benchmarked independe
 
 | Model Family (`key`) | Standalone Val Score | Mean Fold Fit | Mean Fold Inference | Ensemble Weight | Deployment Role |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Two-Stage Counterfactual GBDT** (`two_stage`) | `0.67364 ± 0.00413` | `29207.2 ms` | `591.62 ms` | `100.0%` | `Best Solo Accuracy` |
-| **XGBoost Survival:Cox** (`xgb_cox`) | `0.66592 ± 0.00337` | `4225.8 ms` | `38.50 ms` | `0.0%` | `Fastest Low-Latency` |
-| **Optuna LightGBM** (`lgbm`) | `0.65645 ± 0.00250` | `2920.6 ms` | `62.37 ms` | `0.0%` | `Standby Candidate` |
+| **Two-Stage Counterfactual GBDT** (`two_stage`) | `0.67364 ± 0.00413` | `29207.2 ms` | `602.17 ms` | `100.0%` | `Best Solo Accuracy` |
+| **XGBoost Survival:Cox** (`xgb_cox`) | `0.66592 ± 0.00337` | `4225.8 ms` | `43.89 ms` | `0.0%` | `Fastest Low-Latency` |
+| **Optuna LightGBM** (`lgbm`) | `0.65645 ± 0.00250` | `2920.6 ms` | `61.01 ms` | `0.0%` | `Standby Candidate` |
 
 ---
 
@@ -130,6 +130,7 @@ Every row below corresponds to a verified out-of-fold promotion recorded as an *
 | **Gen 0** | `scaffold` | Baseline initialization | `0.60863` | `baseline` | Deterministic 5-fold leak-free baseline anchor |
 | **Gen 1** | `pipeline/models.py` | `two_stage_counterfactual_gbdt`, `lgbm_optuna_tuned`, `catboost_tuned`, `xgb_optuna_tuned` | `0.67576` | `+0.06713` | Fast Multi-Family Blend (Two-Stage + Optuna-LightGBM + CatBoost + XGBoost) — Combines diverse `<60s/fold` GBDT & counterfactual families during core... |
 | **Gen 2** | `pipeline/models.py` | `two_stage_counterfactual_gbdt`, `xgb_cox_survival`, `lgbm_optuna_tuned` | `0.67576` | `+0.00000` | Two-Stage Counterfactual GBDT + Breslow Cox Partial-Likelihood — Decouples incidence classification from uncensored log-time regression alongside exact... |
+| **Gen 3** | `pipeline/postprocess.py` | `subgroup_rank_equalizer`, `rank_calibration_blend` | `0.67579` | `+0.00004` | Subgroup Rank-Variance Equalization + Rank-Gauss Calibration — Stabilizes inter-cohort score spread to reduce subgroup metric dispersion without... |
 
 ---
 
@@ -142,8 +143,8 @@ flowchart LR
     PRE --> FEAT["2. Features: raw_passthrough"]
     FEAT --> OBJ["3. Objective: standard_task_loss"]
     OBJ --> M0["4. Ensemble: Two-Stage Counterfactual GBDT (100%)"]
-    M0 --> POST["5. Post-Processing: identity_passthrough"]
-    POST --> OUT["5-Fold OOF & Holdout (C_INDEX = 0.67576)"]
+    M0 --> POST["5. Post-Processing: subgroup_rank_equalizer, rank_calibration_blend"]
+    POST --> OUT["5-Fold OOF & Holdout (C_INDEX = 0.67579)"]
 ```
 
 | Deliverable | Role in Production Workflow |
