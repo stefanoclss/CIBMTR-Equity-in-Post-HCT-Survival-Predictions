@@ -2,7 +2,7 @@
 
 [![Autonomous Synthesis](https://img.shields.io/badge/Synthesized%20By-sovLoop%20(Stealth)-0A66C2?style=for-the-badge)](#how-this-pipeline-was-built)
 [![Foundation LLM](https://img.shields.io/badge/Model-qwen36--architect-111827?style=for-the-badge)](#how-this-pipeline-was-built)
-[![Validation](https://img.shields.io/badge/5--Fold%20OOF-C_INDEX%200.67936-059669?style=for-the-badge)](#verified-validation-benchmark)
+[![Validation](https://img.shields.io/badge/5--Fold%20OOF-C_INDEX%200.67940-059669?style=for-the-badge)](#verified-validation-benchmark)
 [![Security](https://img.shields.io/badge/Zero--Pickle-CWE--502%20Compliant-374151?style=for-the-badge)](#governance--production-guarantees)
 [![Kaggle Public Notebook](https://img.shields.io/badge/Kaggle%20Notebook-Public%20Kernel-20BEFF?style=for-the-badge)](https://www.kaggle.com/code/stefanoclss/cibmtr-equity-in-post-hct-survival-predictions)
 [![Kaggle Challenge](https://img.shields.io/badge/Challenge-Benchmark-0284C7?style=for-the-badge)](https://www.kaggle.com/competitions/equity-post-HCT-survival-predictions)
@@ -103,8 +103,8 @@ Production data science teams need pipelines that are not only accurate, but **r
 | **Target Variable (`y`)** | `efs_time` (`regression`) |
 | **Evaluation KPI** | `C_INDEX` (Higher is better) |
 | **Baseline 5-Fold OOF Score** | `0.60863` |
-| **Champion 5-Fold OOF Score** | **`0.67936`** (`+0.07073` verified lift vs. baseline) |
-| **Cross-Fold Stability (Std. Dev.)** | `±0.00465` across `5` strict folds |
+| **Champion 5-Fold OOF Score** | **`0.67940`** (`+0.07077` verified lift vs. baseline) |
+| **Cross-Fold Stability (Std. Dev.)** | `±0.00471` across `5` strict folds |
 | **Synthesis LLM** | `qwen36-architect` (via **sovLoop**) |
 
 ---
@@ -115,9 +115,10 @@ Every individual model inside the unrestricted ensemble is benchmarked independe
 
 | Model Family (`key`) | Standalone Val Score | Mean Fold Fit | Mean Fold Inference | Ensemble Weight | Deployment Role |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Two-Stage Counterfactual GBDT** (`two_stage`) | `0.67622 ± 0.00489` | `51262.2 ms` | `795.58 ms` | `71.8%` | `Best Solo Accuracy` |
-| **Optuna LightGBM** (`lgbm`) | `0.67122 ± 0.00363` | `4524.0 ms` | `141.50 ms` | `28.2%` | `Active Ensemble Member` |
-| **XGBoost Survival:Cox** (`xgb_cox`) | `0.66551 ± 0.00446` | `8193.5 ms` | `116.06 ms` | `0.0%` | `Fastest Low-Latency` |
+| **Two-Stage Counterfactual GBDT** (`two_stage`) | `0.67622 ± 0.00489` | `51262.2 ms` | `923.03 ms` | `70.5%` | `Best Solo Accuracy` |
+| **Optuna LightGBM** (`lgbm`) | `0.67122 ± 0.00363` | `4524.0 ms` | `162.22 ms` | `15.6%` | `Active Ensemble Member` |
+| **Optuna XGBoost** (`xgb`) | `0.67071 ± 0.00436` | `10018.9 ms` | `147.56 ms` | `13.9%` | `Active Ensemble Member` |
+| **XGBoost Survival:Cox** (`xgb_cox`) | `0.66551 ± 0.00446` | `8193.5 ms` | `133.64 ms` | `0.0%` | `Fastest Low-Latency` |
 
 ---
 
@@ -137,6 +138,7 @@ Every row below corresponds to a verified out-of-fold promotion recorded as an *
 | **Gen 7** | `pipeline/postprocess.py` | `tail_shrinkage`, `isotonic_pav_calibration` | `0.67837` | `+0.00000` | Applying James-Stein shrinkage to the extreme tails of the dri_score distribution will reduce variance-driven overfitting in category 6, stabilizing the... |
 | **Gen 8** | `pipeline/postprocess.py` | `optimal_threshold_tune`, `rank_calibration_blend` | `0.67839` | `+0.00001` | Applying OOF Platt scaling to correct mean bias and rank-gauss blending to normalize the heavy-tailed distribution of efs_time residuals will improve... |
 | **Gen 9** | `pipeline/preprocess.py` | `mean_impute`, `oof_target_encoding`, `rare_category_grouping`, `missing_indicators`, `robust_zscore` | `0.67936` | `+0.00097` | Substituting median with mean imputation for numeric features captures broader distributional signal to reduce residual bias in high-signal categorical... |
+| **Gen 10** | `pipeline/models.py` | `two_stage_counterfactual_gbdt`, `xgb_cox_survival`, `lgbm_optuna_tuned`, `xgb_optuna_tuned` | `0.67940` | `+0.00004` | [Phase-2 Neural/Foundation Extension 10/10] Add `xgb_optuna_tuned` onto Phase-1 champion & reweight OOF blend |
 
 ---
 
@@ -148,9 +150,9 @@ flowchart LR
     SPLIT --> PRE["1. Preprocessing: mean_impute, oof_target_encoding, rare_category_grouping, missing_indicators, +1 more"]
     PRE --> FEAT["2. Features: plr_periodic_embeddings, pairwise_diff_crosses, cat_groupby_stats, log1p_skewed, +1 more"]
     FEAT --> OBJ["3. Objective: kaplan_meier_target"]
-    OBJ --> M0["4. Ensemble: Two-Stage Counterfactual GBDT (72%) + Optuna LightGBM (28%)"]
+    OBJ --> M0["4. Ensemble: Two-Stage Counterfactual GBDT (71%) + Optuna LightGBM (16%) + Optuna XGBoost (14%)"]
     M0 --> POST["5. Post-Processing: optimal_threshold_tune, rank_calibration_blend"]
-    POST --> OUT["5-Fold OOF & Holdout (C_INDEX = 0.67936)"]
+    POST --> OUT["5-Fold OOF & Holdout (C_INDEX = 0.67940)"]
 ```
 
 | Deliverable | Role in Production Workflow |
