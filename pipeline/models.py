@@ -1,8 +1,8 @@
 """Stage 4 · Multi-Family Production Ensemble & Optuna Tuning (`pipeline/models.py`).
 
-Synthesized by sovLoop (Model: qwen36-architect)
+Synthesized by sovLoop (Model: qwen3.5:9b)
 Target: `efs_time` (regression | C_INDEX)
-Active Model Operations: two_stage_counterfactual_gbdt, xgb_cox_survival, lgbm_optuna_tuned, xgb_optuna_tuned
+Active Model Operations: ridge_alpha_1.0, two_stage_counterfactual_gbdt, lgbm_optuna_tuned, catboost_tuned
 """
 
 from __future__ import annotations
@@ -18,7 +18,7 @@ import pandas as pd
 
 optuna.logging.set_verbosity(optuna.logging.WARNING)
 
-ACTIVE_MODEL_OPS: tuple[str, ...] = ('two_stage_counterfactual_gbdt', 'xgb_cox_survival', 'lgbm_optuna_tuned', 'xgb_optuna_tuned')
+ACTIVE_MODEL_OPS: tuple[str, ...] = ('ridge_alpha_1.0', 'two_stage_counterfactual_gbdt', 'lgbm_optuna_tuned', 'catboost_tuned')
 IS_BINARY_TASK: bool = "regression" == "binary_classification"
 
 
