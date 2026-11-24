@@ -1,6 +1,6 @@
 """Top-Level Exploratory Data Analysis Orchestrator (`eda_pipeline.py`).
 
-Synthesized by sovLoop (Model: qwen36-architect)
+Synthesized by sovLoop (Model: qwen3.5:9b)
 Imports `pipeline.eda` to profile dataset schema, missingness, and visual target diagnostics.
 """
 
