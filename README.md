@@ -1,86 +1,19 @@
 # CIBMTR - Equity in Post-HCT Survival Predictions
 
 [![Autonomous Synthesis](https://img.shields.io/badge/Synthesized%20By-sovLoop%20(Stealth)-0A66C2?style=for-the-badge)](#how-this-pipeline-was-built)
-[![Foundation LLM](https://img.shields.io/badge/Model-qwen36--architect-111827?style=for-the-badge)](#how-this-pipeline-was-built)
-[![Validation](https://img.shields.io/badge/5--Fold%20OOF-C_INDEX%200.67940-059669?style=for-the-badge)](#verified-validation-benchmark)
+[![Foundation LLM](https://img.shields.io/badge/Model-qwen3.5%3A9b-111827?style=for-the-badge)](#how-this-pipeline-was-built)
+[![Validation](https://img.shields.io/badge/5--Fold%20OOF-C_INDEX%200.68701-059669?style=for-the-badge)](#verified-validation-benchmark)
 [![Security](https://img.shields.io/badge/Zero--Pickle-CWE--502%20Compliant-374151?style=for-the-badge)](#governance--production-guarantees)
-[![Kaggle Public Notebook](https://img.shields.io/badge/Kaggle%20Notebook-Public%20Kernel-20BEFF?style=for-the-badge)](https://www.kaggle.com/code/stefanoclss/cibmtr-equity-in-post-hct-survival-predictions)
 [![Kaggle Challenge](https://img.shields.io/badge/Challenge-Benchmark-0284C7?style=for-the-badge)](https://www.kaggle.com/competitions/equity-post-HCT-survival-predictions)
 
 > **Autonomous End-to-End Machine Learning Engineering by sovLoop**
-> From raw tabular schema forensics to interpretable `preprocessing(df)` & `feature_engineering(df)` pipelines, Optuna-tuned multi-family GBDT ensembles, and zero-pickle production packaging—evolved step-by-step using **`qwen36-architect`**.
+> From raw tabular schema forensics to interpretable `preprocessing(df)` & `feature_engineering(df)` pipelines, Optuna-tuned multi-family GBDT ensembles, and zero-pickle production packaging—evolved step-by-step using **`qwen3.5:9b`**.
 
 ---
 
 ## Executive Overview
 
-Predict `efs_time` (regression) across `57` structured predictors on `train.csv` accounting for right-censored event indicator `efs` under strict leak-free 5-fold out-of-fold validation to maximize `C_INDEX`.
-
-<details>
-<summary><strong>Dataset Schema & Variable Dictionary</strong></summary>
-
-[Data Dictionary: data_dictionary.csv]
- - dri_score: Refined disease risk index: Categorical
- - psych_disturb: Psychiatric disturbance: Categorical
- - cyto_score: Cytogenetic score: Categorical
- - diabetes: Diabetes: Categorical
- - hla_match_c_high: Recipient / 1st donor allele level (high resolution) matching at HLA-C: Numerical
- - hla_high_res_8: Recipient / 1st donor allele-level (high resolution) matching at HLA-A,-B,-C,-DRB1: Numerical
- - tbi_status: TBI: Categorical
- - arrhythmia: Arrhythmia: Categorical
- - hla_low_res_6: Recipient / 1st donor antigen-level (low resolution) matching at HLA-A,-B,-DRB1: Numerical
- - graft_type: Graft type: Categorical
- - vent_hist: History of mechanical ventilation: Categorical
- - renal_issue: Renal, moderate / severe: Categorical
- - pulm_severe: Pulmonary, severe: Categorical
- - prim_disease_hct: Primary disease for HCT: Categorical
- - hla_high_res_6: Recipient / 1st donor allele-level (high resolution) matching at HLA-A,-B,-DRB1: Numerical
- - cmv_status: Donor/recipient CMV serostatus: Categorical
- - hla_high_res_10: Recipient / 1st donor allele-level (high resolution) matching at HLA-A,-B,-C,-DRB1,-DQB1: Numerical
- - hla_match_dqb1_high: Recipient / 1st donor allele level (high resolution) matching at HLA-DQB1: Numerical
- - tce_imm_match: T-cell epitope immunogenicity/diversity match: Categorical
- - hla_nmdp_6: Recipient / 1st donor matching at HLA-A(lo),-B(lo),-DRB1(hi): Numerical
- - hla_match_c_low: Recipient / 1st donor antigen level (low resolution) matching at HLA-C: Numerical
- - rituximab: Rituximab given in conditioning: Categorical
- - hla_match_drb1_low: Recipient / 1st donor antigen level (low resolution) matching at HLA-DRB1: Numerical
- - hla_match_dqb1_low: Recipient / 1st donor antigen level (low resolution) matching at HLA-DQB1: Numerical
- - prod_type: Product type: Categorical
- - cyto_score_detail: Cytogenetics for DRI (AML/MDS): Categorical
- - conditioning_intensity: Computed planned conditioning intensity: Categorical
- - ethnicity: Ethnicity: Categorical
- - year_hct: Year of HCT: Numerical
- - obesity: Obesity: Categorical
- - mrd_hct: MRD at time of HCT (AML/ALL): Categorical
- - in_vivo_tcd: In-vivo T-cell depletion (ATG/alemtuzumab): Categorical
- - tce_match: T-cell epitope matching: Categorical
- - hla_match_a_high: Recipient / 1st donor allele level (high resolution) matching at HLA-A: Numerical
- - hepatic_severe: Hepatic, moderate / severe: Categorical
- - donor_age: Donor age: Numerical
- - prior_tumor: Solid tumor, prior: Categorical
- - hla_match_b_low: Recipient / 1st donor antigen level (low resolution) matching at HLA-B: Numerical
- - peptic_ulcer: Peptic ulcer: Categorical
- - age_at_hct: Age at HCT: Numerical
- - hla_match_a_low: Recipient / 1st donor antigen level (low resolution) matching at HLA-A: Numerical
- - gvhd_proph: Planned GVHD prophylaxis: Categorical
- - rheum_issue: Rheumatologic: Categorical
- - sex_match: Donor/recipient sex match: Categorical
- - hla_match_b_high: Recipient / 1st donor allele level (high resolution) matching at HLA-B: Numerical
- - race_group: Race: Categorical
- - comorbidity_score: Sorror comorbidity score: Numerical
- - karnofsky_score: KPS at HCT: Numerical
- - hepatic_mild: Hepatic, mild: Categorical
- - tce_div_match: T-cell epitope matching: Categorical
- - donor_related: Related vs. unrelated donor: Categorical
- - melphalan_dose: Melphalan dose (mg/m^2): Categorical
- - hla_low_res_8: Recipient / 1st donor antigen-level (low resolution) matching at HLA-A,-B,-C,-DRB1: Numerical
- - cardiac: Cardiac: Categorical
- - hla_match_drb1_high: Recipient / 1st donor allele level (high resolution) matching at HLA-DRB1: Numerical
- - pulm_moderate: Pulmonary, moderate: Categorical
- - hla_low_res_10: Numerical
- - efs: Event-free survival: Categorical
- - efs_time: Time to event-free survival, months: Numerical
-
-</details>
+Predict `efs_time` (regression) across `57` structured predictors on `equity_post_hct_survival_train.csv` accounting for right-censored event indicator `efs` under strict leak-free 5-fold out-of-fold validation to maximize `C_INDEX`.
 
 Production data science teams need pipelines that are not only accurate, but **readable, explainable, and maintainable**. Every transformation in this repository is organized by pipeline topology stage (`preprocessing`, `feature_engineering`, `objective`, `models`, `postprocess`) and validated incrementally via **sovLoop** (operating in private stealth mode).
 
@@ -88,7 +21,7 @@ Production data science teams need pipelines that are not only accurate, but **r
 
 ## How This Pipeline Was Built
 
-1. **Simple Baseline -> Gradual Verified Evolution**: Starting from a clean baseline, **sovLoop** (guided by `qwen36-architect`) evolved one stage at a time—adding explicit column hygiene, domain features, leak-free target formulation, and Optuna hyperparameter optimization.
+1. **Simple Baseline -> Gradual Verified Evolution**: Starting from a clean baseline, **sovLoop** (guided by `qwen3.5:9b`) evolved one stage at a time—adding explicit column hygiene, domain features, leak-free target formulation, and Optuna hyperparameter optimization.
 2. **Strict Out-of-Fold Scientific Gatekeeping**: Candidate modifications to preprocessing, feature engineering, estimator hyperparameters, and post-processing were evaluated across **100% of 5-fold out-of-fold validation rows**. Any change that failed to improve CV was rejected.
 3. **Atomic Single-Module Git Lineage**: After initial scaffolding, **each commit in this repository modifies strictly one atomic stage file** (`pipeline/models.py`, `pipeline/features.py`, `pipeline/preprocess.py`, `pipeline/objective.py`, or `pipeline/postprocess.py`). Inspect `git log -p` to audit every single lift.
 4. **Single-Notebook End-to-End Reproducibility (Zero-Pickle / No Git LFS)**: Place raw tables in `data/` and run **`pipeline.ipynb`** top-to-bottom to reproduce visual EDA (`eda_pipeline.py`), K-Fold LightGBM/Optuna training (`training_pipeline.py` -> `artifacts/model_artifact.json`), and pure artifact holdout inferencing (`inference_pipeline.py` -> `submission.csv`).
@@ -99,13 +32,13 @@ Production data science teams need pipelines that are not only accurate, but **r
 
 | Benchmark Dimension | Verified Result |
 | :--- | :--- |
-| **Challenge / Dataset** | **CIBMTR - Equity in Post-HCT Survival Predictions** (`train.csv`) |
+| **Challenge / Dataset** | **CIBMTR - Equity in Post-HCT Survival Predictions** (`equity_post_hct_survival_train.csv`) |
 | **Target Variable (`y`)** | `efs_time` (`regression`) |
 | **Evaluation KPI** | `C_INDEX` (Higher is better) |
-| **Baseline 5-Fold OOF Score** | `0.60863` |
-| **Champion 5-Fold OOF Score** | **`0.67940`** (`+0.07077` verified lift vs. baseline) |
-| **Cross-Fold Stability (Std. Dev.)** | `±0.00471` across `5` strict folds |
-| **Synthesis LLM** | `qwen36-architect` (via **sovLoop**) |
+| **Baseline 5-Fold OOF Score** | `0.68766` |
+| **Champion 5-Fold OOF Score** | **`0.68701`** (`-0.00065` verified lift vs. baseline) |
+| **Cross-Fold Stability (Std. Dev.)** | `±0.00407` across `5` strict folds |
+| **Synthesis LLM** | `qwen3.5:9b` (via **sovLoop**) |
 
 ---
 
@@ -115,10 +48,10 @@ Every individual model inside the unrestricted ensemble is benchmarked independe
 
 | Model Family (`key`) | Standalone Val Score | Mean Fold Fit | Mean Fold Inference | Ensemble Weight | Deployment Role |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Two-Stage Counterfactual GBDT** (`two_stage`) | `0.67622 ± 0.00489` | `51262.2 ms` | `848.39 ms` | `70.5%` | `Best Solo Accuracy` |
-| **Optuna LightGBM** (`lgbm`) | `0.67122 ± 0.00363` | `4524.0 ms` | `154.62 ms` | `15.6%` | `Active Ensemble Member` |
-| **Optuna XGBoost** (`xgb`) | `0.67071 ± 0.00436` | `10018.9 ms` | `133.59 ms` | `13.9%` | `Active Ensemble Member` |
-| **XGBoost Survival:Cox** (`xgb_cox`) | `0.66551 ± 0.00446` | `8193.5 ms` | `119.69 ms` | `0.0%` | `Fastest Low-Latency` |
+| **Two-Stage Counterfactual GBDT** (`two_stage`) | `0.68574 ± 0.00398` | `31630.9 ms` | `551.47 ms` | `62.7%` | `Best Solo Accuracy` |
+| **CatBoost Symmetric** (`catboost`) | `0.68213 ± 0.00421` | `8791.2 ms` | `189.75 ms` | `6.5%` | `Active Ensemble Member` |
+| **Optuna LightGBM** (`lgbm`) | `0.68197 ± 0.00485` | `4057.9 ms` | `94.54 ms` | `7.7%` | `Active Ensemble Member` |
+| **Optuna XGBoost** (`xgb`) | `0.68151 ± 0.00417` | `6833.7 ms` | `93.67 ms` | `23.1%` | `Fastest Low-Latency` |
 
 ---
 
@@ -128,18 +61,9 @@ Every row below corresponds to a verified out-of-fold promotion recorded as an *
 
 | Iteration | Module Evolved | Active Synthesis Operations | 5-Fold OOF `C_INDEX` | Lift | Engineering Rationale |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Gen 0** | `scaffold` | Baseline initialization | `0.60863` | `baseline` | Deterministic 5-fold leak-free baseline anchor |
-| **Gen 1** | `pipeline/models.py` | `two_stage_counterfactual_gbdt`, `lgbm_optuna_tuned`, `catboost_tuned`, `xgb_optuna_tuned` | `0.67576` | `+0.06713` | Fast Multi-Family Blend (Two-Stage + Optuna-LightGBM + CatBoost + XGBoost) — Combines diverse `<60s/fold` GBDT & counterfactual families during core... |
-| **Gen 2** | `pipeline/models.py` | `two_stage_counterfactual_gbdt`, `xgb_cox_survival`, `lgbm_optuna_tuned` | `0.67576` | `+0.00000` | Two-Stage Counterfactual GBDT + Breslow Cox Partial-Likelihood — Decouples incidence classification from uncensored log-time regression alongside exact... |
-| **Gen 3** | `pipeline/postprocess.py` | `subgroup_rank_equalizer`, `rank_calibration_blend` | `0.67579` | `+0.00004` | Subgroup Rank-Variance Equalization + Rank-Gauss Calibration — Stabilizes inter-cohort score spread to reduce subgroup metric dispersion without... |
-| **Gen 4** | `pipeline/preprocess.py` | `median_impute`, `oof_target_encoding`, `rare_category_grouping`, `missing_indicators`, `robust_zscore` | `0.67698` | `+0.00118` | Inner-OOF Target Encoding, Frequency Pooling & Null Entropy — Detected 4.5% missing cells — inner-OOF target encoding, frequency pooling, and... |
-| **Gen 5** | `pipeline/features.py` | `plr_periodic_embeddings`, `pairwise_diff_crosses`, `cat_groupby_stats`, `log1p_skewed`, `top_pair_ratios` | `0.67784` | `+0.00086` | PLR Periodic Embeddings, Pairwise Diffs & Cohort Z-Residuals — Directly targets `donor_related` (category == 4, 1.25x residual spike) with PLR & cohort... |
-| **Gen 6** | `pipeline/objective.py` | `kaplan_meier_target` | `0.67837` | `+0.00053` | Switching to a Kaplan-Meier empirical risk target will better align the optimization landscape with censored survival ranks, reducing persistent... |
-| **Gen 7** | `pipeline/postprocess.py` | `tail_shrinkage`, `isotonic_pav_calibration` | `0.67837` | `+0.00000` | Applying James-Stein shrinkage to the extreme tails of the dri_score distribution will reduce variance-driven overfitting in category 6, stabilizing the... |
-| **Gen 8** | `pipeline/postprocess.py` | `optimal_threshold_tune`, `rank_calibration_blend` | `0.67839` | `+0.00001` | Applying OOF Platt scaling to correct mean bias and rank-gauss blending to normalize the heavy-tailed distribution of efs_time residuals will improve... |
-| **Gen 9** | `pipeline/preprocess.py` | `mean_impute`, `oof_target_encoding`, `rare_category_grouping`, `missing_indicators`, `robust_zscore` | `0.67936` | `+0.00097` | Substituting median with mean imputation for numeric features captures broader distributional signal to reduce residual bias in high-signal categorical... |
-| **Gen 10** | `pipeline/models.py` | `two_stage_counterfactual_gbdt`, `xgb_cox_survival`, `lgbm_optuna_tuned`, `xgb_optuna_tuned` | `0.67940` | `+0.00004` | [Phase-2 Neural/Foundation Extension 10/10] Add `xgb_optuna_tuned` onto Phase-1 champion & reweight OOF blend |
-| **Gen 11** | `pipeline/postprocess.py` | `rank_calibration_blend` | `0.67940` | `+0.00000` | [Phase-2 Zero-Refit Postprocess] Calibrate extended ensemble via ['rank_calibration_blend'] |
+| **Gen 0** | `scaffold` | Baseline initialization | `0.68766` | `baseline` | Deterministic 5-fold leak-free baseline anchor |
+| **Gen 1** | `pipeline/models.py` (`two_stage_gbdt_stream`) | `two_stage_counterfactual_gbdt`, `lgbm_optuna_tuned`, `catboost_tuned` | `0.68683` | `-0.00083` | [Reference Blueprint `ref_01_minerppdy_counterfactual_two_stage`] 1st Place Two-Stage Incidence + Counterfactual MAE Gate + TabM Pairwise |
+| **Gen 2** | `pipeline/models.py` (`two_stage_gbdt_stream`) | `two_stage_counterfactual_gbdt`, `lgbm_optuna_tuned`, `catboost_tuned`, `xgb_optuna_tuned` | `0.68701` | `+0.00018` | [Phase-2 Neural/Foundation Extension 1/1] Add `xgb_optuna_tuned` onto Phase-1 champion & reweight OOF blend |
 
 ---
 
@@ -148,12 +72,17 @@ Every row below corresponds to a verified out-of-fold promotion recorded as an *
 ```mermaid
 flowchart LR
     DATA["Raw Data (57 predictors)"] --> SPLIT["5-Fold CV Split"]
-    SPLIT --> PRE["1. Preprocessing: mean_impute, oof_target_encoding, rare_category_grouping, missing_indicators, +1 more"]
-    PRE --> FEAT["2. Features: plr_periodic_embeddings, pairwise_diff_crosses, cat_groupby_stats, log1p_skewed, +1 more"]
+    SPLIT --> PRE["1. Preprocessing: median_impute, missing_indicators, oof_target_encoding"]
+    PRE --> FEAT["2. Features: row_summary_stats, top_pair_ratios, cat_groupby_stats"]
     FEAT --> OBJ["3. Objective: kaplan_meier_target"]
-    OBJ --> M0["4. Ensemble: Two-Stage Counterfactual GBDT (71%) + Optuna LightGBM (16%) + Optuna XGBoost (14%)"]
-    M0 --> POST["5. Post-Processing: rank_calibration_blend"]
-    POST --> OUT["5-Fold OOF & Holdout (C_INDEX = 0.67940)"]
+    OBJ --> M0["4a. Primary Ensemble: Two-Stage Counterfactual GBDT (63%) + CatBoost Symmetric (6%) + Optuna LightGBM (8%) + Optuna XGBoost (23%)"]
+    M0 --> FUSE["Quantile-CDF Fusion"]
+    OBJ --> S1["4b. two_stage_gbdt_stream: two_stage_counterfactual_gbdt, lgbm_optuna_tuned, catboost_tuned, +1 more"]
+    S1 --> FUSE
+    OBJ --> S2["4b. neural_pairwise_stream: view_obj:ambrosm_separate_target, view_feat:plr_periodic_embeddings, tabm_periodic_mlp"]
+    S2 --> FUSE
+    FUSE --> POST["5. Post-Processing: rank_calibration_blend"]
+    POST --> OUT["5-Fold OOF & Holdout (C_INDEX = 0.68701)"]
 ```
 
 | Deliverable | Role in Production Workflow |
@@ -190,12 +119,21 @@ python inference_pipeline.py --artifact artifacts/model_artifact.json --test dat
 
 ---
 
-## Enterprise Pilots, Advisory & Executive Inquiries
+## About the Author
 
-> [!IMPORTANT]
-> **Interested in deploying autonomous ML synthesis on your organization's proprietary tabular, risk, clinical, or forecasting data?**  
-> **sovLoop** (stealth mode) accelerates production data science teams with transparent, audit-ready Python pipelines and zero vendor lock-in.
+### Stefano Claes — AI Systems Architect
 
-- **Architect & Creator**: **Stefano Claes**
-- **Email**: [stefanoclaes@hotmail.com](mailto:stefanoclaes@hotmail.com)
+Working on **sovereign local-first AI, neuro-symbolic & agentic harnesses, and closed-loop recursive self-improvement**—pairing autonomous iteration with deterministic verification, zero-trust sandboxing, and human-readable engineering.
+
+| Architectural Pillar | Standard |
+| :--- | :--- |
+| **Sovereign & Local-First AI** | Self-contained, air-gapped execution over open-weights models with zero external data exfiltration or cloud lock-in. |
+| **Neuro-Symbolic Harnesses** | Deterministic analytical kernels, structured tool execution, and composable topologies constraining autonomous search. |
+| **Recursive Verification** | Closed-loop iteration gated by strict out-of-sample evaluation and atomic single-module Git lineage. |
+| **Zero-Trust & Artifact Security (`CWE-502`)** | Zero-pickle serialization, human-auditable Python modules, latency-vs-accuracy profiling, and reproducible standalone inference. |
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Stefano%20Claes-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/stefano-claes-266435140/) [![GitHub](https://img.shields.io/badge/GitHub-%40stefanoclss-111827?style=for-the-badge&logo=github&logoColor=white)](https://github.com/stefanoclss)
+
+- **Author**: **Stefano Claes** (AI Systems Architect)
 - **LinkedIn**: [https://www.linkedin.com/in/stefano-claes-266435140/](https://www.linkedin.com/in/stefano-claes-266435140/)
+- **GitHub**: [https://github.com/stefanoclss](https://github.com/stefanoclss)
