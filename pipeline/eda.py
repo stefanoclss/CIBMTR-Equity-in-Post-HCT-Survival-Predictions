@@ -1,6 +1,6 @@
 """Exploratory Data Analysis & Visual Diagnostics (`pipeline/eda.py`).
 
-Synthesized by sovLoop (Model: qwen36-architect)
+Synthesized by sovLoop (Model: qwen3.5:9b)
 Target Variable: `efs_time` (regression | C_INDEX)
 """
 
