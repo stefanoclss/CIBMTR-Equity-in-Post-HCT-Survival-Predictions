@@ -1,6 +1,6 @@
 """Top-Level Training & K-Fold CV Orchestrator (`training_pipeline.py`).
 
-Synthesized by sovLoop (Model: qwen36-architect)
+Synthesized by sovLoop (Model: qwen3.5:9b)
 Executes `preprocessing(df)` -> `feature_engineering(df)` -> `configure_objective_stage`
 -> LightGBM/Optuna `fit_model_stage` across strict K-Fold splits, exporting zero-pickle
 `artifacts/model_artifact.json` and `artifacts/fold_*.lgb`.
@@ -183,7 +183,7 @@ def save_trained_artifact(
 
     payload = {
         "schema_version": "2.0",
-        "synthesis_model": "qwen36-architect",
+        "synthesis_model": "qwen3.5:9b",
         "target_col": fitted_bundle.get("target_col", "efs_time"),
         "event_col": fitted_bundle.get("event_col"),
         "feature_cols": fitted_bundle["feature_cols"],
