@@ -1,6 +1,6 @@
 """Stage 3 · Target Formulation & Loss Weighting (`pipeline/objective.py`).
 
-Synthesized by sovLoop (Model: qwen36-architect)
+Synthesized by sovLoop (Model: qwen3.5:9b)
 Active Operations: kaplan_meier_target
 """
 
