@@ -2,7 +2,7 @@
 
 [![Autonomous Synthesis](https://img.shields.io/badge/Synthesized%20By-sovLoop%20(Stealth)-0A66C2?style=for-the-badge)](#how-this-pipeline-was-built)
 [![Foundation LLM](https://img.shields.io/badge/Model-qwen3.5%3A9b-111827?style=for-the-badge)](#how-this-pipeline-was-built)
-[![Validation](https://img.shields.io/badge/5--Fold%20OOF-C_INDEX%200.67521-059669?style=for-the-badge)](#verified-validation-benchmark)
+[![Validation](https://img.shields.io/badge/5--Fold%20OOF-C_INDEX%200.67663-059669?style=for-the-badge)](#verified-validation-benchmark)
 [![Security](https://img.shields.io/badge/Zero--Pickle-CWE--502%20Compliant-374151?style=for-the-badge)](#governance--production-guarantees)
 [![Kaggle Public Notebook](https://img.shields.io/badge/Kaggle%20Notebook-Public%20Kernel-20BEFF?style=for-the-badge)](https://www.kaggle.com/code/stefanoclss/cibmtr-equity-in-post-hct-survival-predictions)
 [![Kaggle Challenge](https://img.shields.io/badge/Challenge-Benchmark-0284C7?style=for-the-badge)](https://www.kaggle.com/competitions/equity-post-HCT-survival-predictions)
@@ -37,8 +37,8 @@ Production data science teams need pipelines that are not only accurate, but **r
 | **Target Variable (`y`)** | `efs_time` (`regression`) |
 | **Evaluation KPI** | `C_INDEX` (Higher is better) |
 | **Baseline 5-Fold OOF Score** | `0.60768` |
-| **Champion 5-Fold OOF Score** | **`0.67521`** (`+0.06754` verified lift vs. baseline) |
-| **Cross-Fold Stability (Std. Dev.)** | `±0.00659` across `5` strict folds |
+| **Champion 5-Fold OOF Score** | **`0.67663`** (`+0.06896` verified lift vs. baseline) |
+| **Cross-Fold Stability (Std. Dev.)** | `±0.00587` across `5` strict folds |
 | **Synthesis LLM** | `qwen3.5:9b` (via **sovLoop**) |
 
 ---
@@ -49,7 +49,7 @@ Every individual model inside the unrestricted ensemble is benchmarked independe
 
 | Model Family (`key`) | Standalone Val Score | Mean Fold Fit | Mean Fold Inference | Ensemble Weight | Deployment Role |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Two-Stage Counterfactual GBDT** (`two_stage`) | `0.67235 ± 0.00659` | `42228.2 ms` | `621.48 ms` | `100.0%` | `Best Solo + Fastest SLA` |
+| **Two-Stage Counterfactual GBDT** (`two_stage`) | `0.67353 ± 0.00587` | `49812.7 ms` | `652.16 ms` | `100.0%` | `Best Solo + Fastest SLA` |
 
 ---
 
@@ -63,6 +63,7 @@ Every row below corresponds to a verified out-of-fold promotion recorded as an *
 | **Gen 1** | `pipeline/models.py` | `two_stage_counterfactual_gbdt` | `0.67446` | `+0.06678` | Coordinate-ascent probe on `model`: Evaluate single estimator `Two-Stage Incidence + Counterfactual Time GBDT (1st/4th Place Architecture)` |
 | **Gen 2** | `pipeline/preprocess.py` | `oof_target_encoding` | `0.67476` | `+0.00031` | Applying fold-safe inner-OOF target encoding to high-leverage categorical features (dri_score, gvhd_proph, diabetes) will decouple their event incidence... |
 | **Gen 3** | `pipeline/augmentation.py` | `sequence_track_rotate_shift` | `0.67521` | `+0.00045` | Coordinate-ascent probe on `augmentation`: Tracker Rotate + Shift Corruption (Anti-Shortcut, Train-Only) |
+| **Gen 4** | `pipeline/preprocess.py` | `oof_target_encoding`, `rare_category_grouping`, `missing_indicators` | `0.67663` | `+0.00142` | Rare pooling in dri_score, gvhd_proph, and prim_disease_hct will reduce high-fold variance (r>0.5) by grouping noise, while missing_indicators will... |
 
 ---
 
@@ -71,12 +72,12 @@ Every row below corresponds to a verified out-of-fold promotion recorded as an *
 ```mermaid
 flowchart LR
     DATA["Raw Data (57 predictors)"] --> SPLIT["5-Fold CV Split"]
-    SPLIT --> PRE["1. Preprocessing: oof_target_encoding"]
+    SPLIT --> PRE["1. Preprocessing: oof_target_encoding, rare_category_grouping, missing_indicators"]
     PRE --> FEAT["2. Features: raw_passthrough"]
     FEAT --> OBJ["3. Objective: standard_task_loss"]
     OBJ --> M0["4. Ensemble: Two-Stage Counterfactual GBDT (100%)"]
     M0 --> POST["5. Post-Processing: identity_passthrough"]
-    POST --> OUT["5-Fold OOF & Holdout (C_INDEX = 0.67521)"]
+    POST --> OUT["5-Fold OOF & Holdout (C_INDEX = 0.67663)"]
 ```
 
 | Deliverable | Role in Production Workflow |
