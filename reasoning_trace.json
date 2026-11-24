@@ -1,0 +1,78 @@
+{
+  "schema_version": "1.0",
+  "trace_id": "trace_cibmtr_two_stage_survival_v1",
+  "created_at": "2026-11-24T00:33:55.353176+00:00",
+  "source_dataset": "equity-post-HCT-survival-predictions (28,800 patients, 57 predictors)",
+  "architecture_name": "Two-Stage KM-Weighted Incidence + Counterfactual Log-Time + Multi-GBDT + TabM PLE",
+  "architecture_summary": "Decouples right-censored survival into incidence probability P(event=1|X) and counterfactual conditional log-time E[log(1+T)|X,event=1], blended with Optuna XGBoost, LightGBM, CatBoost, and TabM-mini PLE under rank calibration.",
+  "target_metric": "C_INDEX",
+  "higher_is_better": true,
+  "baseline_cv": 0.608626,
+  "final_cv": 0.687009,
+  "source_profile": {
+    "regime": "censored_survival",
+    "has_reference_curve": false,
+    "sensor_channel_count": 0,
+    "sensor_missing_rate": 0.0,
+    "sensor_needs_calibration": false,
+    "coupled_invariant_collapse": 0.0,
+    "target_anchor_span_p99": null,
+    "has_spatial_coords": false,
+    "has_train_only_surfaces": false,
+    "disjoint_entity_groups": false,
+    "has_censored_event": true,
+    "n_rows": 28800,
+    "n_features": 57
+  },
+  "assumptions": [
+    {
+      "check_id": "require_censored_event_indicator",
+      "profile_field": "has_censored_event",
+      "operator": "bool_true",
+      "expected_value": true,
+      "severity": "hard_blocker",
+      "why_it_matters": "Two-Stage incidence + counterfactual survival decomposition specifically models right-censored event indicators.",
+      "if_violated_action": "DIVERGE_DO_NOT_COPY survival decomposition; for uncensored regression/classification, use direct GBDT + TabM/RealMLP/Ridge."
+    },
+    {
+      "check_id": "shared_demographic_strata_not_disjoint_entities",
+      "profile_field": "disjoint_entity_groups",
+      "operator": "bool_false",
+      "expected_value": false,
+      "severity": "adapt_required",
+      "why_it_matters": "StratifiedKFold + OOF target encoding assume equity/demographic strata overlap between train and test.",
+      "if_violated_action": "ADAPT: if groups are disjoint entities (GroupKFold), exclude group IDs from features and use entity-grouped inner validation."
+    }
+  ],
+  "divergent_options": [
+    {
+      "option_id": "opt_naive_regression_on_time",
+      "family": "tabular_baseline",
+      "hypothesis": "Predict raw efs_time directly without censoring decomposition.",
+      "empirical_metric": 0.608626,
+      "outcome": "rejected",
+      "rationale": "Treats censored survivors identically to early deaths; severe concordance collapse."
+    },
+    {
+      "option_id": "opt_single_km_target_gbdt",
+      "family": "survival_gbdt",
+      "hypothesis": "Train LightGBM/CatBoost/XGBoost on Kaplan-Meier transformed survival target.",
+      "empirical_metric": 0.68213,
+      "outcome": "adapted",
+      "rationale": "Strong diverse base learners (+0.0735 C_INDEX), retained inside multi-stream ensemble alongside Two-Stage Counterfactual."
+    },
+    {
+      "option_id": "opt_two_stage_counterfactual_multistream",
+      "family": "two_stage_counterfactual",
+      "hypothesis": "Fuse Two-Stage Counterfactual GBDT (0.68574) + Optuna XGB/LGBM/CatBoost + TabM PLE + rank_calibration_blend on all 28,800 rows.",
+      "empirical_metric": 0.687009,
+      "outcome": "converged",
+      "rationale": "Outperformed every solo survival branch with +0.00761 gain over prior 0.67940 commit and 0.0 zero-pickle parity."
+    }
+  ],
+  "convergence_rationale": "Two-Stage Counterfactual decoupling captures both event incidence and conditional timing; ensembling with KM-target GBDTs and TabM PLE maximizes stratified concordance across demographic cohorts.",
+  "copy_vs_adapt_rules": [
+    "DO NOT copy Two-Stage survival decomposition onto uncensored datasets lacking an event indicator.",
+    "ALWAYS verify whether group columns are overlapping strata (keep as features) or disjoint entity IDs (exclude under GroupKFold)."
+  ]
+}
