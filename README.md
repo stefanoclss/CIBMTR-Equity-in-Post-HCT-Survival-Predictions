@@ -2,8 +2,9 @@
 
 [![Autonomous Synthesis](https://img.shields.io/badge/Synthesized%20By-sovLoop%20(Stealth)-0A66C2?style=for-the-badge)](#how-this-pipeline-was-built)
 [![Foundation LLM](https://img.shields.io/badge/Model-qwen3.5%3A9b-111827?style=for-the-badge)](#how-this-pipeline-was-built)
-[![Validation](https://img.shields.io/badge/5--Fold%20OOF-C_INDEX%200.68701-059669?style=for-the-badge)](#verified-validation-benchmark)
+[![Validation](https://img.shields.io/badge/5--Fold%20OOF-C_INDEX%200.67446-059669?style=for-the-badge)](#verified-validation-benchmark)
 [![Security](https://img.shields.io/badge/Zero--Pickle-CWE--502%20Compliant-374151?style=for-the-badge)](#governance--production-guarantees)
+[![Kaggle Public Notebook](https://img.shields.io/badge/Kaggle%20Notebook-Public%20Kernel-20BEFF?style=for-the-badge)](https://www.kaggle.com/code/stefanoclss/cibmtr-equity-in-post-hct-survival-predictions)
 [![Kaggle Challenge](https://img.shields.io/badge/Challenge-Benchmark-0284C7?style=for-the-badge)](https://www.kaggle.com/competitions/equity-post-HCT-survival-predictions)
 
 > **Autonomous End-to-End Machine Learning Engineering by sovLoop**
@@ -13,7 +14,7 @@
 
 ## Executive Overview
 
-Predict `efs_time` (regression) across `57` structured predictors on `equity_post_hct_survival_train.csv` accounting for right-censored event indicator `efs` under strict leak-free 5-fold out-of-fold validation to maximize `C_INDEX`.
+Predict `efs_time` (regression) across `57` structured predictors on `equity-post-HCT-survival-predictions` accounting for right-censored event indicator `efs` under strict leak-free 5-fold out-of-fold validation to maximize `C_INDEX`.
 
 Production data science teams need pipelines that are not only accurate, but **readable, explainable, and maintainable**. Every transformation in this repository is organized by pipeline topology stage (`preprocessing`, `feature_engineering`, `objective`, `models`, `postprocess`) and validated incrementally via **sovLoop** (operating in private stealth mode).
 
@@ -32,12 +33,12 @@ Production data science teams need pipelines that are not only accurate, but **r
 
 | Benchmark Dimension | Verified Result |
 | :--- | :--- |
-| **Challenge / Dataset** | **CIBMTR - Equity in Post-HCT Survival Predictions** (`equity_post_hct_survival_train.csv`) |
+| **Challenge / Dataset** | **CIBMTR - Equity in Post-HCT Survival Predictions** (`equity-post-HCT-survival-predictions`) |
 | **Target Variable (`y`)** | `efs_time` (`regression`) |
 | **Evaluation KPI** | `C_INDEX` (Higher is better) |
-| **Baseline 5-Fold OOF Score** | `0.68766` |
-| **Champion 5-Fold OOF Score** | **`0.68701`** (`-0.00065` verified lift vs. baseline) |
-| **Cross-Fold Stability (Std. Dev.)** | `±0.00407` across `5` strict folds |
+| **Baseline 5-Fold OOF Score** | `0.60768` |
+| **Champion 5-Fold OOF Score** | **`0.67446`** (`+0.06678` verified lift vs. baseline) |
+| **Cross-Fold Stability (Std. Dev.)** | `±0.00724` across `5` strict folds |
 | **Synthesis LLM** | `qwen3.5:9b` (via **sovLoop**) |
 
 ---
@@ -48,10 +49,7 @@ Every individual model inside the unrestricted ensemble is benchmarked independe
 
 | Model Family (`key`) | Standalone Val Score | Mean Fold Fit | Mean Fold Inference | Ensemble Weight | Deployment Role |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Two-Stage Counterfactual GBDT** (`two_stage`) | `0.68574 ± 0.00398` | `31630.9 ms` | `551.47 ms` | `62.7%` | `Best Solo Accuracy` |
-| **CatBoost Symmetric** (`catboost`) | `0.68213 ± 0.00421` | `8791.2 ms` | `189.75 ms` | `6.5%` | `Active Ensemble Member` |
-| **Optuna LightGBM** (`lgbm`) | `0.68197 ± 0.00485` | `4057.9 ms` | `94.54 ms` | `7.7%` | `Active Ensemble Member` |
-| **Optuna XGBoost** (`xgb`) | `0.68151 ± 0.00417` | `6833.7 ms` | `93.67 ms` | `23.1%` | `Fastest Low-Latency` |
+| **Two-Stage Counterfactual GBDT** (`two_stage`) | `0.67261 ± 0.00724` | `24379.2 ms` | `494.11 ms` | `100.0%` | `Best Solo + Fastest SLA` |
 
 ---
 
@@ -61,9 +59,8 @@ Every row below corresponds to a verified out-of-fold promotion recorded as an *
 
 | Iteration | Module Evolved | Active Synthesis Operations | 5-Fold OOF `C_INDEX` | Lift | Engineering Rationale |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Gen 0** | `scaffold` | Baseline initialization | `0.68766` | `baseline` | Deterministic 5-fold leak-free baseline anchor |
-| **Gen 1** | `pipeline/models.py` (`two_stage_gbdt_stream`) | `two_stage_counterfactual_gbdt`, `lgbm_optuna_tuned`, `catboost_tuned` | `0.68683` | `-0.00083` | [Reference Blueprint `ref_01_minerppdy_counterfactual_two_stage`] 1st Place Two-Stage Incidence + Counterfactual MAE Gate + TabM Pairwise |
-| **Gen 2** | `pipeline/models.py` (`two_stage_gbdt_stream`) | `two_stage_counterfactual_gbdt`, `lgbm_optuna_tuned`, `catboost_tuned`, `xgb_optuna_tuned` | `0.68701` | `+0.00018` | [Phase-2 Neural/Foundation Extension 1/1] Add `xgb_optuna_tuned` onto Phase-1 champion & reweight OOF blend |
+| **Gen 0** | `scaffold` | Baseline initialization | `0.60768` | `baseline` | Deterministic 5-fold leak-free baseline anchor |
+| **Gen 1** | `pipeline/models.py` | `two_stage_counterfactual_gbdt` | `0.67446` | `+0.06678` | Coordinate-ascent probe on `model`: Evaluate single estimator `Two-Stage Incidence + Counterfactual Time GBDT (1st/4th Place Architecture)` |
 
 ---
 
@@ -72,17 +69,12 @@ Every row below corresponds to a verified out-of-fold promotion recorded as an *
 ```mermaid
 flowchart LR
     DATA["Raw Data (57 predictors)"] --> SPLIT["5-Fold CV Split"]
-    SPLIT --> PRE["1. Preprocessing: median_impute, missing_indicators, oof_target_encoding"]
-    PRE --> FEAT["2. Features: row_summary_stats, top_pair_ratios, cat_groupby_stats"]
-    FEAT --> OBJ["3. Objective: kaplan_meier_target"]
-    OBJ --> M0["4a. Primary Ensemble: Two-Stage Counterfactual GBDT (63%) + CatBoost Symmetric (6%) + Optuna LightGBM (8%) + Optuna XGBoost (23%)"]
-    M0 --> FUSE["Quantile-CDF Fusion"]
-    OBJ --> S1["4b. two_stage_gbdt_stream: two_stage_counterfactual_gbdt, lgbm_optuna_tuned, catboost_tuned, +1 more"]
-    S1 --> FUSE
-    OBJ --> S2["4b. neural_pairwise_stream: view_obj:ambrosm_separate_target, view_feat:plr_periodic_embeddings, tabm_periodic_mlp"]
-    S2 --> FUSE
-    FUSE --> POST["5. Post-Processing: rank_calibration_blend"]
-    POST --> OUT["5-Fold OOF & Holdout (C_INDEX = 0.68701)"]
+    SPLIT --> PRE["1. Preprocessing: mean_impute"]
+    PRE --> FEAT["2. Features: raw_passthrough"]
+    FEAT --> OBJ["3. Objective: standard_task_loss"]
+    OBJ --> M0["4. Ensemble: Two-Stage Counterfactual GBDT (100%)"]
+    M0 --> POST["5. Post-Processing: identity_passthrough"]
+    POST --> OUT["5-Fold OOF & Holdout (C_INDEX = 0.67446)"]
 ```
 
 | Deliverable | Role in Production Workflow |
@@ -137,7 +129,3 @@ Working on **sovereign local-first AI, neuro-symbolic & agentic harnesses, and c
 - **Author**: **Stefano Claes** (AI Systems Architect)
 - **LinkedIn**: [https://www.linkedin.com/in/stefano-claes-266435140/](https://www.linkedin.com/in/stefano-claes-266435140/)
 - **GitHub**: [https://github.com/stefanoclss](https://github.com/stefanoclss)
-
-## Reasoning Trace & Transfer Verification (Diverge → Verify → Converge)
-
-Full machine-verifiable sensor/schema transfer assumptions and empirical divergent hypotheses evaluated before convergence are recorded in [`REASONING_TRACE.md`](./REASONING_TRACE.md) and [`reasoning_trace.json`](./reasoning_trace.json).
