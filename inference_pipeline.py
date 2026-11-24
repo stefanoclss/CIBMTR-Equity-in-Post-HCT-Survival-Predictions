@@ -1,6 +1,6 @@
 """Top-Level Batch Inference Orchestrator (`inference_pipeline.py`).
 
-Synthesized by sovLoop (Model: qwen36-architect)
+Synthesized by sovLoop (Model: qwen3.5:9b)
 Loads zero-pickle `artifacts/model_artifact.json` (and `fold_*.lgb` boosters)
 and executes `preprocessing(df)` -> `feature_engineering(df)` -> fold ensemble scoring.
 """
