@@ -1,7 +1,7 @@
 """Stage 2 · Interpretable Feature Engineering (`pipeline/features.py`).
 
 Synthesized by sovLoop (Model: qwen3.5:9b)
-Active Operations: synth:groupby_z:hla_match_c_high:dri_score, synth:groupby_z:karnofsky_score:dri_score, synth:cat_cross:gvhd_proph:dri_score, synth:diff:age_at_hct:karnofsky_score
+Active Operations: synth:groupby_z:hla_match_c_high:dri_score, synth:groupby_z:karnofsky_score:dri_score, synth:cat_cross:gvhd_proph:dri_score, synth:diff:age_at_hct:karnofsky_score, synth:groupby_rank:hla_match_c_high:dri_score
 """
 
 from __future__ import annotations
@@ -9,7 +9,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-ACTIVE_FEATURE_OPS: tuple[str, ...] = ('synth:groupby_z:hla_match_c_high:dri_score', 'synth:groupby_z:karnofsky_score:dri_score', 'synth:cat_cross:gvhd_proph:dri_score', 'synth:diff:age_at_hct:karnofsky_score')
+ACTIVE_FEATURE_OPS: tuple[str, ...] = ('synth:groupby_z:hla_match_c_high:dri_score', 'synth:groupby_z:karnofsky_score:dri_score', 'synth:cat_cross:gvhd_proph:dri_score', 'synth:diff:age_at_hct:karnofsky_score', 'synth:groupby_rank:hla_match_c_high:dri_score')
 PRIORITY_SIGNAL_COLUMNS: list[str] = ['year_hct', 'conditioning_intensity', 'prim_disease_hct', 'dri_score', 'comorbidity_score', 'age_at_hct']
 
 
@@ -46,6 +46,11 @@ def feature_engineering(df: pd.DataFrame) -> pd.DataFrame:
         _df = (out['age_at_hct'] - out['karnofsky_score']).clip(-15.0, 15.0)
         out['age_at_hct_minus_karnofsky_score'] = _df
         out['age_at_hct_absdiff_karnofsky_score'] = _df.abs()
+    if 'hla_match_c_high' in out.columns and 'dri_score' in out.columns:
+        _grp = out['dri_score'].round(3)
+        _gmu = out.groupby(_grp)['hla_match_c_high'].transform('mean')
+        _gsd = out.groupby(_grp)['hla_match_c_high'].transform('std').fillna(1.0)
+        out['hla_match_c_high_groupby_rank_dri_score'] = ((out['hla_match_c_high'] - _gmu) / _gsd.clip(lower=1e-2)).clip(-10, 10)
 
     return out.replace([np.inf, -np.inf], 0.0).fillna(0.0)
 
