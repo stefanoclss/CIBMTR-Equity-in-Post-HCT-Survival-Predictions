@@ -2,7 +2,7 @@
 
 Synthesized by sovLoop (Model: qwen3.5:9b)
 Target: `efs_time` (regression | C_INDEX)
-Active Model Operations: ridge_alpha_1.0, tabm_periodic_mlp
+Active Model Operations: two_stage_counterfactual_gbdt, lgbm_optuna_tuned, tabm_periodic_mlp
 """
 
 from __future__ import annotations
@@ -18,7 +18,7 @@ import pandas as pd
 
 optuna.logging.set_verbosity(optuna.logging.WARNING)
 
-ACTIVE_MODEL_OPS: tuple[str, ...] = ('ridge_alpha_1.0', 'tabm_periodic_mlp')
+ACTIVE_MODEL_OPS: tuple[str, ...] = ('two_stage_counterfactual_gbdt', 'lgbm_optuna_tuned', 'tabm_periodic_mlp')
 IS_BINARY_TASK: bool = "regression" == "binary_classification"
 
 
