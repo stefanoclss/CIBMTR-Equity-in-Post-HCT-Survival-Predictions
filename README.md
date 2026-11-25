@@ -2,7 +2,7 @@
 
 [![Autonomous Synthesis](https://img.shields.io/badge/Synthesized%20By-sovLoop%20(Stealth)-0A66C2?style=for-the-badge)](#how-this-pipeline-was-built)
 [![Foundation LLM](https://img.shields.io/badge/Model-qwen3.5%3A9b-111827?style=for-the-badge)](#how-this-pipeline-was-built)
-[![Validation](https://img.shields.io/badge/5--Fold%20OOF-C_INDEX%200.67890-059669?style=for-the-badge)](#verified-validation-benchmark)
+[![Validation](https://img.shields.io/badge/5--Fold%20OOF-C_INDEX%200.67720-059669?style=for-the-badge)](#verified-validation-benchmark)
 [![Security](https://img.shields.io/badge/Zero--Pickle-CWE--502%20Compliant-374151?style=for-the-badge)](#governance--production-guarantees)
 [![Kaggle Public Notebook](https://img.shields.io/badge/Kaggle%20Notebook-Public%20Kernel-20BEFF?style=for-the-badge)](https://www.kaggle.com/code/stefanoclss/cibmtr-equity-in-post-hct-survival-predictions)
 [![Kaggle Challenge](https://img.shields.io/badge/Challenge-Benchmark-0284C7?style=for-the-badge)](https://www.kaggle.com/competitions/equity-post-HCT-survival-predictions)
@@ -36,9 +36,9 @@ Production data science teams need pipelines that are not only accurate, but **r
 | **Challenge / Dataset** | **CIBMTR - Equity in Post-HCT Survival Predictions** (`equity-post-HCT-survival-predictions`) |
 | **Target Variable (`y`)** | `efs_time` (`regression`) |
 | **Evaluation KPI** | `C_INDEX` (Higher is better) |
-| **Baseline 5-Fold OOF Score** | `0.67617` |
-| **Champion 5-Fold OOF Score** | **`0.67890`** (`+0.00272` verified lift vs. baseline) |
-| **Cross-Fold Stability (Std. Dev.)** | `±0.00557` across `5` strict folds |
+| **Baseline 5-Fold OOF Score** | `0.67692` |
+| **Champion 5-Fold OOF Score** | **`0.67720`** (`+0.00028` verified lift vs. baseline) |
+| **Cross-Fold Stability (Std. Dev.)** | `±0.00372` across `5` strict folds |
 | **Synthesis LLM** | `qwen3.5:9b` (via **sovLoop**) |
 
 ---
@@ -49,8 +49,8 @@ Every individual model inside the unrestricted ensemble is benchmarked independe
 
 | Model Family (`key`) | Standalone Val Score | Mean Fold Fit | Mean Fold Inference | Ensemble Weight | Deployment Role |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Two-Stage Counterfactual GBDT** (`two_stage`) | `0.67261 ± 0.00724` | `23680.7 ms` | `512.49 ms` | `51.0%` | `Best Solo Accuracy` |
-| **Optuna LightGBM** (`lgbm`) | `0.67125 ± 0.00670` | `2929.6 ms` | `54.65 ms` | `49.0%` | `Fastest Low-Latency` |
+| **Two-Stage Counterfactual GBDT** (`two_stage`) | `0.67405 ± 0.00411` | `25331.3 ms` | `595.52 ms` | `100.0%` | `Best Solo Accuracy` |
+| **Optuna LightGBM** (`lgbm`) | `0.65641 ± 0.00262` | `2383.6 ms` | `69.45 ms` | `0.0%` | `Fastest Low-Latency` |
 
 ---
 
@@ -60,10 +60,8 @@ Every row below corresponds to a verified out-of-fold promotion recorded as an *
 
 | Iteration | Module Evolved | Active Synthesis Operations | 5-Fold OOF `C_INDEX` | Lift | Engineering Rationale |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Gen 0** | `scaffold` | Baseline initialization | `0.67617` | `baseline` | Deterministic 5-fold leak-free baseline anchor |
-| **Gen 1** | `pipeline/objective.py` | `kaplan_meier_target` | `0.67832` | `+0.00214` | Coordinate-ascent probe on `objective`: Kaplan-Meier Survival / Empirical CDF Risk Target |
-| **Gen 2** | `pipeline/models.py` (`stream_1`) | `view_obj:nelson_aalen_hazard_target`, `view_feat:plr_periodic_embeddings`, `catboost_tuned` | `0.67853` | `+0.00021` | Spawn orthogonal `nelson_aalen_hazard_target` parallel stream (catboost_tuned) to break CV plateau. |
-| **Gen 3** | `pipeline/models.py` (`neural_pairwise_stream`) | `view_feat:plr_periodic_embeddings`, `tabm_periodic_mlp`, `view_feat:row_summary_stats`, `view_obj:kaplan_meier_target` | `0.67890` | `+0.00036` | Kaplan-Meier target transformation aligns model optimization with empirical survival probabilities, mitigating censoring bias that currently inflates... |
+| **Gen 0** | `scaffold` | Baseline initialization | `0.67692` | `baseline` | Deterministic 5-fold leak-free baseline anchor |
+| **Gen 1** | `pipeline/models.py` (`neural_pairwise_stream`) | `view_feat:plr_periodic_embeddings`, `tabm_periodic_mlp`, `view_obj:quantile_rank_target`, `view_feat:row_summary_stats` | `0.67720` | `+0.00028` | Replacing the AmbrosM target with Quantile Rank and adding Row Summary stats will better capture the heavy-tailed survival distribution and non-linear... |
 
 ---
 
@@ -74,17 +72,15 @@ flowchart LR
     DATA["Raw Data (57 predictors)"] --> SPLIT["5-Fold CV Split"]
     SPLIT --> PRE["1. Preprocessing: mean_impute"]
     PRE --> FEAT["2. Features: raw_passthrough"]
-    FEAT --> OBJ["3. Objective: kaplan_meier_target"]
-    OBJ --> M0["4a. Primary Ensemble: Two-Stage Counterfactual GBDT (51%) + Optuna LightGBM (49%)"]
+    FEAT --> OBJ["3. Objective: standard_task_loss"]
+    OBJ --> M0["4a. Primary Ensemble: Two-Stage Counterfactual GBDT (100%)"]
     M0 --> FUSE["Quantile-CDF Fusion"]
     OBJ --> S1["4b. two_stage_gbdt_stream: two_stage_counterfactual_gbdt, lgbm_optuna_tuned"]
     S1 --> FUSE
-    OBJ --> S2["4b. neural_pairwise_stream: view_feat:plr_periodic_embeddings, tabm_periodic_mlp, view_feat:row_summary_stats, +1 more"]
+    OBJ --> S2["4b. neural_pairwise_stream: view_feat:plr_periodic_embeddings, tabm_periodic_mlp, view_obj:quantile_rank_target, +1 more"]
     S2 --> FUSE
-    OBJ --> S3["4b. stream_1: view_obj:nelson_aalen_hazard_target, view_feat:plr_periodic_embeddings, catboost_tuned"]
-    S3 --> FUSE
     FUSE --> POST["5. Post-Processing: identity_passthrough"]
-    POST --> OUT["5-Fold OOF & Holdout (C_INDEX = 0.67890)"]
+    POST --> OUT["5-Fold OOF & Holdout (C_INDEX = 0.67720)"]
 ```
 
 | Deliverable | Role in Production Workflow |
