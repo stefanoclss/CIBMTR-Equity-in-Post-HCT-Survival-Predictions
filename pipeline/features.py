@@ -1,7 +1,7 @@
 """Stage 2 · Interpretable Feature Engineering (`pipeline/features.py`).
 
 Synthesized by sovLoop (Model: qwen3.5:9b)
-Active Operations: row_summary_stats, top_pair_ratios, cat_groupby_stats
+Active Operations: synth:groupby_z:hla_match_c_high:dri_score
 """
 
 from __future__ import annotations
@@ -9,8 +9,8 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-ACTIVE_FEATURE_OPS: tuple[str, ...] = ('row_summary_stats', 'top_pair_ratios', 'cat_groupby_stats')
-PRIORITY_SIGNAL_COLUMNS: list[str] = ['conditioning_intensity', 'year_hct', 'dri_score', 'prim_disease_hct', 'comorbidity_score', 'gvhd_proph']
+ACTIVE_FEATURE_OPS: tuple[str, ...] = ('synth:groupby_z:hla_match_c_high:dri_score',)
+PRIORITY_SIGNAL_COLUMNS: list[str] = ['year_hct', 'conditioning_intensity', 'dri_score', 'prim_disease_hct', 'comorbidity_score', 'age_at_hct']
 
 
 def feature_engineering(df: pd.DataFrame) -> pd.DataFrame:
@@ -27,26 +27,11 @@ def feature_engineering(df: pd.DataFrame) -> pd.DataFrame:
             if len(fallback_cols) >= 4:
                 break
 
-    # Safe domain ratios between top numeric predictors
-    if 'conditioning_intensity' in out.columns and 'year_hct' in out.columns:
-        _den = out['year_hct'].where(out['year_hct'].abs() >= 0.15, 0.15)
-        out['conditioning_intensity_div_year_hct'] = (out['conditioning_intensity'] / _den).clip(-10.0, 10.0)
-    if len(fallback_cols) >= 2:
-        _a, _b = fallback_cols[0], fallback_cols[1]
-        _rname = f'{_a}_div_{_b}'
-        if _rname not in out.columns:
-            _den = out[_b].where(out[_b].abs() >= 0.15, 0.15)
-            out[_rname] = (out[_a] / _den).clip(-10.0, 10.0)
-    # Row-wise summary moments across predictors
-    if fallback_cols:
-        out['row_numeric_mean'] = out[fallback_cols].mean(axis=1)
-        out['row_numeric_std'] = out[fallback_cols].std(axis=1).fillna(0.0)
-    if len(fallback_cols) >= 2:
-        _rk = out[fallback_cols[0]].rank(method='first')
-        _q = pd.qcut(_rk, q=4, labels=False, duplicates='drop')
-        _g = out.groupby(_q)[fallback_cols[1]].transform('mean')
-        out['cohort_ctx_mean'] = _g
-        out['cohort_ctx_resid'] = out[fallback_cols[1]] - _g
+    if 'hla_match_c_high' in out.columns and 'dri_score' in out.columns:
+        _grp = out['dri_score'].round(3)
+        _gmu = out.groupby(_grp)['hla_match_c_high'].transform('mean')
+        _gsd = out.groupby(_grp)['hla_match_c_high'].transform('std').fillna(1.0)
+        out['hla_match_c_high_groupby_z_dri_score'] = ((out['hla_match_c_high'] - _gmu) / _gsd.clip(lower=1e-2)).clip(-10, 10)
 
     return out.replace([np.inf, -np.inf], 0.0).fillna(0.0)
 
