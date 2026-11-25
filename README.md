@@ -2,7 +2,7 @@
 
 [![Autonomous Synthesis](https://img.shields.io/badge/Synthesized%20By-sovLoop%20(Stealth)-0A66C2?style=for-the-badge)](#how-this-pipeline-was-built)
 [![Foundation LLM](https://img.shields.io/badge/Model-qwen3.5%3A9b-111827?style=for-the-badge)](#how-this-pipeline-was-built)
-[![Validation](https://img.shields.io/badge/5--Fold%20OOF-C_INDEX%200.68570-059669?style=for-the-badge)](#verified-validation-benchmark)
+[![Validation](https://img.shields.io/badge/5--Fold%20OOF-C_INDEX%200.68620-059669?style=for-the-badge)](#verified-validation-benchmark)
 [![Security](https://img.shields.io/badge/Zero--Pickle-CWE--502%20Compliant-374151?style=for-the-badge)](#governance--production-guarantees)
 [![Kaggle Public Notebook](https://img.shields.io/badge/Kaggle%20Notebook-Public%20Kernel-20BEFF?style=for-the-badge)](https://www.kaggle.com/code/stefanoclss/cibmtr-equity-in-post-hct-survival-predictions)
 [![Kaggle Challenge](https://img.shields.io/badge/Challenge-Benchmark-0284C7?style=for-the-badge)](https://www.kaggle.com/competitions/equity-post-HCT-survival-predictions)
@@ -37,8 +37,8 @@ Production data science teams need pipelines that are not only accurate, but **r
 | **Target Variable (`y`)** | `efs_time` (`regression`) |
 | **Evaluation KPI** | `C_INDEX` (Higher is better) |
 | **Baseline 5-Fold OOF Score** | `0.68402` |
-| **Champion 5-Fold OOF Score** | **`0.68570`** (`+0.00168` verified lift vs. baseline) |
-| **Cross-Fold Stability (Std. Dev.)** | `±0.00486` across `5` strict folds |
+| **Champion 5-Fold OOF Score** | **`0.68620`** (`+0.00217` verified lift vs. baseline) |
+| **Cross-Fold Stability (Std. Dev.)** | `±0.00479` across `5` strict folds |
 | **Synthesis LLM** | `qwen3.5:9b` (via **sovLoop**) |
 
 ---
@@ -49,8 +49,8 @@ Every individual model inside the unrestricted ensemble is benchmarked independe
 
 | Model Family (`key`) | Standalone Val Score | Mean Fold Fit | Mean Fold Inference | Ensemble Weight | Deployment Role |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Two-Stage Counterfactual GBDT** (`two_stage`) | `0.68217 ± 0.00483` | `46383.2 ms` | `705.47 ms` | `99.5%` | `Best Solo Accuracy` |
-| **Optuna LightGBM** (`lgbm`) | `0.67295 ± 0.00400` | `5277.6 ms` | `131.23 ms` | `0.5%` | `Fastest Low-Latency` |
+| **Two-Stage Counterfactual GBDT** (`two_stage`) | `0.68258 ± 0.00465` | `33366.8 ms` | `570.24 ms` | `100.0%` | `Best Solo Accuracy` |
+| **Optuna LightGBM** (`lgbm`) | `0.67073 ± 0.00366` | `4106.6 ms` | `113.91 ms` | `0.0%` | `Fastest Low-Latency` |
 
 ---
 
@@ -66,6 +66,7 @@ Every row below corresponds to a verified out-of-fold promotion recorded as an *
 | **Gen 3** | `pipeline/features.py` | `synth:groupby_z:hla_match_c_high:dri_score` | `0.68435` | `+0.00017` | Synthesize residual-targeted `synth:groupby_z:hla_match_c_high:dri_score` interaction on `features`. |
 | **Gen 4** | `pipeline/features.py` | `synth:groupby_z:comorbidity_score:dri_score`, `synth:cat_cross:dri_score:gvhd_proph` | `0.68462` | `+0.00027` | Stratified risk interactions (dri_score cat-6) and graft-vs-host prophylaxis (gvhd_proph cat-5) drive residual dispersion; |
 | **Gen 5** | `pipeline/preprocess.py` | `median_impute`, `missing_indicators`, `rare_category_grouping`, `oof_target_encoding` | `0.68570` | `+0.00108` | [Phase-2 Categorical Hygiene] Apply ['median_impute', 'missing_indicators', 'rare_category_grouping', 'oof_target_encoding'] on `preprocess` |
+| **Gen 6** | `pipeline/preprocess.py` | `median_impute`, `missing_indicators` | `0.68620` | `+0.00050` | [Phase-2 Categorical Hygiene] Apply ['median_impute', 'missing_indicators'] on `preprocess` |
 
 ---
 
@@ -74,7 +75,7 @@ Every row below corresponds to a verified out-of-fold promotion recorded as an *
 ```mermaid
 flowchart LR
     DATA["Raw Data (57 predictors)"] --> SPLIT["5-Fold CV Split"]
-    SPLIT --> PRE["1. Preprocessing: median_impute, missing_indicators, rare_category_grouping, oof_target_encoding"]
+    SPLIT --> PRE["1. Preprocessing: median_impute, missing_indicators"]
     PRE --> FEAT["2. Features: synth:groupby_z:comorbidity_score:dri_score, synth:cat_cross:dri_score:gvhd_proph"]
     FEAT --> OBJ["3. Objective: kaplan_meier_target"]
     OBJ --> M0["4a. Primary Ensemble: Two-Stage Counterfactual GBDT (100%)"]
@@ -84,7 +85,7 @@ flowchart LR
     OBJ --> S2["4b. neural_pairwise_stream: view_obj:ambrosm_separate_target, view_feat:plr_periodic_embeddings, tabm_periodic_mlp"]
     S2 --> FUSE
     FUSE --> POST["5. Post-Processing: rank_calibration_blend, isotonic_pav_calibration"]
-    POST --> OUT["5-Fold OOF & Holdout (C_INDEX = 0.68570)"]
+    POST --> OUT["5-Fold OOF & Holdout (C_INDEX = 0.68620)"]
 ```
 
 | Deliverable | Role in Production Workflow |
