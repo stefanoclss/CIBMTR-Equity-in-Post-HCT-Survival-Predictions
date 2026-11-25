@@ -1,7 +1,7 @@
 """Stage 1 · Fold-Safe Data Hygiene & Preprocessing (`pipeline/preprocess.py`).
 
 Synthesized by sovLoop (Model: qwen3.5:9b)
-Active Operations: oof_target_encoding, rare_category_grouping, missing_indicators
+Active Operations: median_impute, missing_indicators, rare_category_grouping, oof_target_encoding
 """
 
 from __future__ import annotations
@@ -11,7 +11,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-ACTIVE_PREPROCESS_OPS: tuple[str, ...] = ('oof_target_encoding', 'rare_category_grouping', 'missing_indicators')
+ACTIVE_PREPROCESS_OPS: tuple[str, ...] = ('median_impute', 'missing_indicators', 'rare_category_grouping', 'oof_target_encoding')
 SCHEMA_CATEGORICAL_SAMPLE: list[str] = ['dri_score', 'psych_disturb', 'cyto_score', 'diabetes', 'tbi_status', 'arrhythmia', 'graft_type', 'vent_hist', 'renal_issue', 'pulm_severe', 'prim_disease_hct', 'cmv_status']
 SCHEMA_NUMERIC_SAMPLE: list[str] = ['hla_match_c_high', 'hla_high_res_8', 'hla_low_res_6', 'hla_high_res_6', 'hla_high_res_10', 'hla_match_dqb1_high', 'hla_nmdp_6', 'hla_match_c_low', 'hla_match_drb1_low', 'hla_match_dqb1_low', 'year_hct', 'hla_match_a_high']
 
