@@ -2,7 +2,7 @@
 
 [![Autonomous Synthesis](https://img.shields.io/badge/Synthesized%20By-sovLoop%20(Stealth)-0A66C2?style=for-the-badge)](#how-this-pipeline-was-built)
 [![Foundation LLM](https://img.shields.io/badge/Model-qwen3.5%3A9b-111827?style=for-the-badge)](#how-this-pipeline-was-built)
-[![Validation](https://img.shields.io/badge/5--Fold%20OOF-C_INDEX%200.67868-059669?style=for-the-badge)](#verified-validation-benchmark)
+[![Validation](https://img.shields.io/badge/5--Fold%20OOF-C_INDEX%200.67912-059669?style=for-the-badge)](#verified-validation-benchmark)
 [![Security](https://img.shields.io/badge/Zero--Pickle-CWE--502%20Compliant-374151?style=for-the-badge)](#governance--production-guarantees)
 [![Kaggle Public Notebook](https://img.shields.io/badge/Kaggle%20Notebook-Public%20Kernel-20BEFF?style=for-the-badge)](https://www.kaggle.com/code/stefanoclss/cibmtr-equity-in-post-hct-survival-predictions)
 [![Kaggle Challenge](https://img.shields.io/badge/Challenge-Benchmark-0284C7?style=for-the-badge)](https://www.kaggle.com/competitions/equity-post-HCT-survival-predictions)
@@ -37,8 +37,8 @@ Production data science teams need pipelines that are not only accurate, but **r
 | **Target Variable (`y`)** | `efs_time` (`regression`) |
 | **Evaluation KPI** | `C_INDEX` (Higher is better) |
 | **Baseline 5-Fold OOF Score** | `0.67692` |
-| **Champion 5-Fold OOF Score** | **`0.67868`** (`+0.00176` verified lift vs. baseline) |
-| **Cross-Fold Stability (Std. Dev.)** | `±0.00338` across `5` strict folds |
+| **Champion 5-Fold OOF Score** | **`0.67912`** (`+0.00220` verified lift vs. baseline) |
+| **Cross-Fold Stability (Std. Dev.)** | `±0.00324` across `5` strict folds |
 | **Synthesis LLM** | `qwen3.5:9b` (via **sovLoop**) |
 
 ---
@@ -49,8 +49,8 @@ Every individual model inside the unrestricted ensemble is benchmarked independe
 
 | Model Family (`key`) | Standalone Val Score | Mean Fold Fit | Mean Fold Inference | Ensemble Weight | Deployment Role |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Two-Stage Counterfactual GBDT** (`two_stage`) | `0.67358 ± 0.00352` | `26746.0 ms` | `518.45 ms` | `56.2%` | `Best Solo Accuracy` |
-| **Optuna LightGBM** (`lgbm`) | `0.67141 ± 0.00418` | `3061.2 ms` | `76.59 ms` | `43.8%` | `Fastest Low-Latency` |
+| **Two-Stage Counterfactual GBDT** (`two_stage`) | `0.67487 ± 0.00375` | `28914.7 ms` | `583.60 ms` | `63.1%` | `Best Solo Accuracy` |
+| **Optuna LightGBM** (`lgbm`) | `0.67207 ± 0.00277` | `3136.6 ms` | `96.76 ms` | `36.9%` | `Fastest Low-Latency` |
 
 ---
 
@@ -64,6 +64,8 @@ Every row below corresponds to a verified out-of-fold promotion recorded as an *
 | **Gen 1** | `pipeline/models.py` (`neural_pairwise_stream`) | `view_feat:plr_periodic_embeddings`, `tabm_periodic_mlp`, `view_obj:quantile_rank_target`, `view_feat:row_summary_stats` | `0.67720` | `+0.00028` | Replacing the AmbrosM target with Quantile Rank and adding Row Summary stats will better capture the heavy-tailed survival distribution and non-linear... |
 | **Gen 2** | `pipeline/objective.py` | `kaplan_meier_target` | `0.67827` | `+0.00107` | Replacing the standard task loss with a Kaplan-Meier target function will align the optimization objective with the empirical survival distribution... |
 | **Gen 3** | `pipeline/features.py` | `synth:groupby_z:hla_match_c_high:dri_score` | `0.67868` | `+0.00041` | Synthesize residual-targeted `synth:groupby_z:hla_match_c_high:dri_score` interaction on `features`. |
+| **Gen 4** | `pipeline/features.py` | `synth:groupby_z:hla_match_c_high:dri_score`, `synth:groupby_z:karnofsky_score:dri_score`, `synth:cat_cross:gvhd_proph:dri_score`, `synth:diff:age_at_hct:karnofsky_score` | `0.67869` | `+0.00001` | DRI-score's 1.60x multiplicity suggests cohort-level context dependency on Karnofsky performance status; |
+| **Gen 5** | `pipeline/features.py` | `synth:groupby_z:hla_match_c_high:dri_score`, `synth:groupby_z:karnofsky_score:dri_score`, `synth:cat_cross:gvhd_proph:dri_score`, `synth:diff:age_at_hct:karnofsky_score`, `synth:groupby_rank:hla_match_c_high:dri_score` | `0.67912` | `+0.00043` | Synthesize residual-targeted `synth:groupby_rank:hla_match_c_high:dri_score` interaction on `features`. |
 
 ---
 
@@ -73,16 +75,16 @@ Every row below corresponds to a verified out-of-fold promotion recorded as an *
 flowchart LR
     DATA["Raw Data (57 predictors)"] --> SPLIT["5-Fold CV Split"]
     SPLIT --> PRE["1. Preprocessing: mean_impute"]
-    PRE --> FEAT["2. Features: synth:groupby_z:hla_match_c_high:dri_score"]
+    PRE --> FEAT["2. Features: synth:groupby_z:hla_match_c_high:dri_score, synth:groupby_z:karnofsky_score:dri_score, synth:cat_cross:gvhd_proph:dri_score, synth:diff:age_at_hct:karnofsky_score, +1 more"]
     FEAT --> OBJ["3. Objective: kaplan_meier_target"]
-    OBJ --> M0["4a. Primary Ensemble: Two-Stage Counterfactual GBDT (56%) + Optuna LightGBM (44%)"]
+    OBJ --> M0["4a. Primary Ensemble: Two-Stage Counterfactual GBDT (63%) + Optuna LightGBM (37%)"]
     M0 --> FUSE["Quantile-CDF Fusion"]
     OBJ --> S1["4b. two_stage_gbdt_stream: two_stage_counterfactual_gbdt, lgbm_optuna_tuned"]
     S1 --> FUSE
     OBJ --> S2["4b. neural_pairwise_stream: view_feat:plr_periodic_embeddings, tabm_periodic_mlp, view_obj:quantile_rank_target, +1 more"]
     S2 --> FUSE
     FUSE --> POST["5. Post-Processing: identity_passthrough"]
-    POST --> OUT["5-Fold OOF & Holdout (C_INDEX = 0.67868)"]
+    POST --> OUT["5-Fold OOF & Holdout (C_INDEX = 0.67912)"]
 ```
 
 | Deliverable | Role in Production Workflow |
